@@ -1,12 +1,17 @@
 import { app, shell, BrowserWindow } from 'electron'
 import * as path from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { glob } from 'glob'
 
 function createWindow() {
+  // Load main process handlers
+  const files = glob.sync(path.join(__dirname, './handlers/**/*.js'))
+  files.forEach((file) => require(file))
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    minWidth: 640,
+    minHeight: 440,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux'
@@ -33,6 +38,7 @@ function createWindow() {
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    mainWindow.webContents.openDevTools({ mode: 'detach' })
   } else {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
   }
