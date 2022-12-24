@@ -1,7 +1,8 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, protocol } from 'electron'
 import * as path from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { glob } from 'glob'
+import url from 'url'
 
 function createWindow() {
   // Load main process handlers
@@ -48,6 +49,16 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  protocol.registerFileProtocol('imgx', (req, callback) => {
+    const filepath = url.fileURLToPath('file://' + req.url.slice('imgx://'.length))
+    try {
+      return callback(filepath)
+    } catch (error) {
+      console.error(error)
+      return callback(404)
+    }
+  })
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
