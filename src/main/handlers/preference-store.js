@@ -2,8 +2,7 @@ const { ipcMain } = require("electron");
 const PreferenceStore = require("../stores/PreferenceStore");
 
 const preferenceStore = new PreferenceStore({
-  // path: process.argv.includes("--current") ? process.cwd() : null,
-  path: process.cwd(), //!DEBUG: FOR DEBUG ONLY
+  path: process.argv.includes("--current") ? process.cwd() : null,
   defaults: {
     dir: null,
     currentImgIndex: -1,

@@ -4,6 +4,8 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { glob } from 'glob'
 import url from 'url'
 
+if (is.dev) process.argv.push("--current") // create config file in the current working directory
+
 function createWindow() {
   // Load main process handlers
   const files = glob.sync(path.join(__dirname, './handlers/**/*.js'))
