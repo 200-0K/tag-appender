@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import Store from 'electron-store'
 
-class PreferenceStore extends Store {
+export default class PreferenceStore extends Store {
   constructor({ path, defaults = {} } = {}) {
     super({
       cwd: path ?? app.getPath('userData'),
@@ -36,5 +36,3 @@ class PreferenceStore extends Store {
     return this.savePrefs()
   }
 }
-
-module.exports = PreferenceStore

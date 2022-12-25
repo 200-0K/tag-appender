@@ -1,4 +1,4 @@
-const { ipcMain, dialog } = require("electron");
+import { ipcMain, dialog } from "electron";
 
 ipcMain.handle("directory-picker", async () => {
   const picker = await dialog.showOpenDialog(null, {

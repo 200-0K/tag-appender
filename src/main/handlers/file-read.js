@@ -1,5 +1,5 @@
-const { ipcMain } = require("electron");
-const fs = require("fs");
+import { ipcMain } from "electron";
+import fs from "fs";
 
 ipcMain.handle("file-read", (event, file, { delimiter } = {}) => {
   if (!fs.existsSync(file)) return null;

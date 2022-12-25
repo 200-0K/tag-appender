@@ -1,6 +1,6 @@
-const { ipcMain } = require('electron')
-const glob = require('glob')
-const path = require('path')
+import { ipcMain } from 'electron'
+import glob from 'glob'
+import path from 'path'
 
 const filterNames = {
   images: 'jpg,jpeg,png,gif'

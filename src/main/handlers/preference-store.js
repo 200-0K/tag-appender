@@ -1,5 +1,5 @@
-const { ipcMain } = require("electron");
-const PreferenceStore = require("../stores/PreferenceStore");
+import { ipcMain } from "electron";
+import PreferenceStore from "../stores/PreferenceStore";
 
 const preferenceStore = new PreferenceStore({
   path: process.argv.includes("--current") ? process.cwd() : null,
