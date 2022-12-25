@@ -33,10 +33,9 @@ export default function ImageViewer({
         />
 
         {/* Image Controller */}
-        <div className="flex gap-2 text-white">
+        <div className="flex gap-2 text-white select-none">
           <Button
             title="Previous"
-            className="bg-button rounded px-2 disabled:opacity-70"
             // disabled={index - 1 < 0}
             disabled={!allowPrev}
             onClick={onPrev}
@@ -45,7 +44,7 @@ export default function ImageViewer({
           </Button>
           <Button
             title="Rename"
-            className="bg-button uppercase rounded px-2 py-1 disabled:opacity-70"
+            className="uppercase"
             disabled={!isThereImage}
             onClick={handleRenameImage}
           >
@@ -53,7 +52,6 @@ export default function ImageViewer({
           </Button>
           <Button
             title="Next"
-            className="bg-button rounded px-2 disabled:opacity-70"
             // disabled={index + 1 >= imgs.length}
             disabled={!allowNext}
             onClick={onNext}

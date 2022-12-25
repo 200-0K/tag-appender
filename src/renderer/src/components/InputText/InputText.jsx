@@ -5,7 +5,7 @@ export default function InputText({className, onValueEnter, ...props}) {
     onKeyDown={e => {
       const { key, target: { value } } = e;
       if(! (key === "Enter" && value.length > 0)) return;
-      onValueEnter?.(e);
+      onValueEnter?.(value, e);
     }}
     {...props}
   />
