@@ -1,34 +1,11 @@
-# tag-appender
+# Tag Appender
+<p align="center" >
+  <img src="public/imgs/demo.gif" width="800">
+</p>
 
-An Electron application with React
+Tag Appender is a cross-platform application with a user-friendly graphical interface that enables efficient tagging of images. The app allows you to select a directory containing the images you want to tag and then apply one or more tags to each image by appending the tags to the image file name.
 
-## Recommended IDE Setup
-
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
-
-## Project Setup
-
-### Install
-
-```bash
-$ npm install
-```
-
-### Development
-
-```bash
-$ npm run dev
-```
-
-### Build
-
-```bash
-# For windows
-$ npm run build:win
-
-# For macOS
-$ npm run build:mac
-
-# For Linux
-$ npm run build:linux
-```
+## How to Use
+### Tagging
+- One Tag: To add one tag, just left click the tag from the tag list.
+- Multiple Tags: To add multiple tags, hold down the control key while clicking the tags to select them.
