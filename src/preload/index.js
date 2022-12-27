@@ -1,14 +1,22 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import path from "path"
 // import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
+const tagsPath = process.cwd()
+const resolveTagFilePath = filename => path.join(tagsPath, filename + ".ta")
 const api = {
   directoryPicker: () => ipcRenderer.invoke("directory-picker"),
   directoryScanner: (dir, options) => ipcRenderer.invoke("directory-scanner", dir, options),
-  profileScanner: () => ipcRenderer.invoke("directory-scanner", null, { filter: "ta" }),
+
+  profileScanner: () => ipcRenderer.invoke("directory-scanner", tagsPath, { filter: "ta", filenameOnly:true }),
+
+  createTagFile: filename => ipcRenderer.invoke("file-create", resolveTagFilePath(filename)),
+  readTagFile: filename => ipcRenderer.invoke("file-read", resolveTagFilePath(filename), { delimiter: "\n" }),
+  appendTagToFile: (filename, tag) => ipcRenderer.invoke("file-write", resolveTagFilePath(filename), "\n" + tag),
+
   renameFile: (oldPath, newPath) => ipcRenderer.invoke("file-rename", oldPath, newPath),
-  readTagFile: file => ipcRenderer.invoke("file-read", file, { delimiter: "\n" }),
-  appendTagToFile: (file, tag) => ipcRenderer.invoke("file-write", file, "\n" + tag),
+
   getPreference: () => ipcRenderer.invoke("preference-store-get"),
   updatePreference: prefs => ipcRenderer.invoke("preference-store-update", prefs)
 }

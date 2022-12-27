@@ -29,7 +29,7 @@ export function getNewImageName(path, tags, selectedTags, { fullPath = false } =
 
 export async function getTagsFromFile(file) {
   if (!file) return null
-  const tags = (await window.api.readTagFile(file)).filter(Boolean)
+  const tags = (await window.api.readTagFile(file) ?? []).filter(Boolean)
   return tags
 }
 

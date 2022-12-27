@@ -1,3 +1,4 @@
+import Swal from 'sweetalert2'
 import { useEffect, useState } from 'react'
 import FileBrowser from '../../components/FileBrowser'
 import InputText from '../../components/InputText'
@@ -9,6 +10,7 @@ import { appendTag, getNewImageName, getSelectedTags, getTagsFromFile } from './
 import { getImages } from './utils/images'
 import { getProfiles } from './utils/profiles'
 import { getFileName } from '../../../../../utils/path-format'
+import Button from '../../components/Button'
 
 function App() {
   const [dir, setDir] = useState()
@@ -24,11 +26,12 @@ function App() {
   useEffect(() => {
     const init = async () => {
       const { dir, currentImgIndex, currentProfile } = await window.api.getPreference()
-      const profiles = await getProfiles()
+      const profiles = await getProfiles() ?? []
       setDir(dir)
       setCurrentImgIndex(currentImgIndex)
-      setCurrentProfile(currentProfile)
-      setProfiles(profiles ?? [])
+      // setCurrentProfile(currentProfile)
+      setProfiles(profiles)
+      setCurrentProfile(profiles.find((profile) => profile === currentProfile) ?? profiles[0])
     }
     init()
       .then(() => setDoneInit(true)) //TODO: better solution?
@@ -48,10 +51,7 @@ function App() {
       .catch(console.error)
   }, [dir])
 
-  // update current profile
-  useEffect(() => {
-    setCurrentProfile(profiles.find((profile) => profile === currentProfile) ?? profiles[0])
-  }, [profiles])
+  // useEffect(() => {...}, [profiles])
 
   // update tags
   useEffect(() => {
@@ -113,22 +113,40 @@ function App() {
 
         {/* Right Section */}
         <div className="flex flex-col gap-2 w-56 select-none">
-          {/* Profile List */}
-          <DropdownMenu
-            items={profiles.map((profilePath) => ({
-              value: profilePath,
-              displayValue: getFileName(profilePath)
-            }))}
-            handleItemChange={(profilePath) => setCurrentProfile(profilePath)}
-            selectedItem={currentProfile}
-            title="Profile"
-          />
+          <div className="flex gap-2">
+            {/* Profile List */}
+            <DropdownMenu
+              items={profiles}
+              handleItemChange={(profile) => setCurrentProfile(profile)}
+              selectedItem={currentProfile}
+              title="Profile"
+              className="flex-1"
+            />
+            <Button
+              onClick={async () => {
+                const {value: filename} = await Swal.fire({
+                  title: "File Name?",
+                  input: "text",
+                  showCancelButton: true,
+                  inputValidator: async val => {
+                    if (!val) return "File name cannot be empty."
+                    else if (!await window.api.createTagFile(val)) return "Error Creating File: There was an error creating the file. Please choose a different name and try again."
+                  }
+                })
+
+                if (!filename) return
+                
+                setProfiles([...profiles, filename])
+                setCurrentProfile([filename])
+              }}
+            >+</Button>
+          </div>
 
           {/* Tag Input */}
           <InputText
             placeholder="Tag"
             onValueEnter={async (newTag, e) => {
-              ;(await appendTag(currentProfile, newTag)) && setTags([...tags, newTag])
+              (await appendTag(currentProfile, newTag)) && setTags([...tags, newTag])
               e.target.value = ''
             }}
           />
