@@ -11,4 +11,4 @@ Tag Appender is a cross-platform application with a user-friendly graphical inte
 - Multiple Tags: To add multiple tags, hold down the control key while clicking the tags to select them.
 
 ### Config File
-To create the config file in the current directory, include the `--current` flag when running the application.
+To create the config file in the directory where you are currently running the application, include the `--current` flag when running the application.
