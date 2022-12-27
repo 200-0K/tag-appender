@@ -9,3 +9,6 @@ Tag Appender is a cross-platform application with a user-friendly graphical inte
 ### Tagging
 - One Tag: To add one tag, just left click the tag from the tag list.
 - Multiple Tags: To add multiple tags, hold down the control key while clicking the tags to select them.
+
+### Config File
+To create the config file in the current directory, include the `--current` flag when running the application.
