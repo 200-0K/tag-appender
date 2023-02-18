@@ -71,7 +71,7 @@ function App() {
 
   // update selected tags
   useEffect(() => {
-    setSelectedTags(getSelectedTags(imgs[currentImgIndex], tags) ?? [])
+    setSelectedTags(getSelectedTags(imgs[currentImgIndex], tags) ?? selectedTags)
   }, [tags, currentImgIndex])
 
   const imagePath = imgs[currentImgIndex]
