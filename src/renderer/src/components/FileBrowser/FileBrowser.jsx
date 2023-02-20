@@ -1,27 +1,21 @@
-import { useEffect, useState } from "react";
-import Button from "../Button";
-import InputText from "../InputText";
+import React from 'react'
+import { directoryPicker } from '../../utils/pickers'
+import Button from '../Button'
+import InputText from '../InputText'
 
-export default function FileBrowser({ dir, onDirChange }) {
+function FileBrowser({ dir, onDirChange, className }) {
   const handleBrowse = async () => {
-    const newDir = await window.api.directoryPicker();
-    if (!newDir) return;
+    const newDir = await directoryPicker()
+    if (!newDir) return
     onDirChange?.(newDir)
   }
 
   return (
-    <div className='flex-1 flex gap-2 text-xs'>
-      <InputText 
-        className="flex-1"
-        value={ dir || "None"} 
-        disabled={ !dir }
-        readOnly
-      />
-      <Button
-        onClick={handleBrowse}
-      >
-        Browse
-      </Button>
+    <div className={['flex gap-2 text-xs', className].join(' ')}>
+      <InputText className="flex-1" value={dir || 'None'} disabled={!dir} readOnly />
+      <Button onClick={handleBrowse}>Browse</Button>
     </div>
-  );
+  )
 }
+
+export default React.memo(FileBrowser)

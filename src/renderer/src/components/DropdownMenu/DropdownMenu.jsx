@@ -1,9 +1,11 @@
-export default function DropdownMenu({ items, handleItemChange, selectedItem, className, ...props }) {
+import React from 'react'
+
+function DropdownMenu({ items, handleItemChange, selectedItem, className, ...props }) {
   return (
     <select
       value={selectedItem || false}
-      className={["bg-drop-down rounded px-2 py-1", className].join(" ")}
-      onChange={e => e.target.value && handleItemChange(e.target.value)}
+      className={['bg-drop-down rounded px-2 py-1', className].join(' ')}
+      onChange={(e) => e.target.value && handleItemChange(e.target.value)}
       {...props}
     >
       {items?.map((item, idx) => (
@@ -14,3 +16,5 @@ export default function DropdownMenu({ items, handleItemChange, selectedItem, cl
     </select>
   )
 }
+
+export default React.memo(DropdownMenu)
