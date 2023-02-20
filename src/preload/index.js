@@ -2,6 +2,8 @@ import { contextBridge, ipcRenderer } from 'electron'
 // import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
+const tagsPath = process.cwd()
+
 const api = {
   directoryPicker: () => ipcRenderer.invoke('directory-picker'),
   directoryScanner: (dir, options) => ipcRenderer.invoke('directory-scanner', dir, options),
