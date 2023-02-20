@@ -11,14 +11,18 @@ import { getImageTags, getTagsFromFile, appendTag, putTagsToImage, moveImage } f
 import { getImages } from './utils/images'
 import { getProfiles } from './utils/profiles'
 import { directoryPicker } from '../../utils/pickers'
+import BounceLoader from 'react-spinners/BounceLoader'
+import ExternalScriptButton from '../../components/ExternalScriptButton/ExternalScriptButton'
 
 function App() {
   const [loadingPrefs, setLoadingPrefs] = useState(true)
+  const [loadingTags, setLoadingTags] = useState(true) // for smart tagging
   const [dir, setDir] = useState(null)
   const [currentImgIndex, setCurrentImgIndex] = useState(null)
   const [currentImgPath, setCurrentImgPath] = useState(null)
   const [currentProfile, setCurrentProfile] = useState(null)
   const [moveLocation, setMoveLocation] = useState(null)
+  const [autotagScript, setAutotagScript] = useState(null)
   const [imgs, setImgs] = useState([])
   const [profiles, setProfiles] = useState([])
   const [tags, setTags] = useState([])
@@ -28,12 +32,14 @@ function App() {
   // init
   useEffect(() => {
     const init = async () => {
-      const { dir, currentImgPath, currentProfile, moveLocation } = await window.api.getPreference()
+      const { dir, currentImgPath, currentProfile, moveLocation, autotagScript } =
+        await window.api.getPreference()
       const profiles = (await getProfiles()) ?? []
       setDir(dir)
       setCurrentImgIndex(currentImgIndex)
       setCurrentImgPath(currentImgPath)
       setMoveLocation(moveLocation)
+      setAutotagScript(autotagScript)
       setProfiles(profiles)
       setCurrentProfile(profiles.find((profile) => profile === currentProfile) ?? profiles[0])
       setLoadingPrefs(false)
@@ -45,9 +51,9 @@ function App() {
   useEffect(() => {
     if (loadingPrefs) return // to avoid overwriting preference file with default values
     window.api
-      .updatePreference({ dir, currentImgPath, currentProfile, moveLocation })
+      .updatePreference({ dir, currentImgPath, currentProfile, moveLocation, autotagScript })
       .catch(console.error)
-  }, [dir, currentImgPath, currentProfile, moveLocation])
+  }, [dir, currentImgPath, currentProfile, moveLocation, autotagScript])
 
   // directory changed
   useEffect(() => {
@@ -74,13 +80,18 @@ function App() {
   }, [currentProfile])
 
   // update selected tags
+  const loadImageTags = () => {
+    setLoadingTags(true)
+    getImageTags(imgs[currentImgIndex]).then((imageTags) => {
+      setImageTags(imageTags ?? [])
+      setSelectedTags(imageTags ?? selectedTags.filter((tag) => tags.includes(tag)))
+      setLoadingTags(false)
+    })
+  }
   useEffect(() => {
     setCurrentImgPath(imgs[currentImgIndex])
     if (!imgs[currentImgIndex]) return
-    getImageTags(imgs[currentImgIndex]).then((imageTags) => {
-      setImageTags(imageTags ?? [])
-      setSelectedTags(imageTags ?? selectedTags.filter(tag => tags.includes(tag)))
-    })
+    loadImageTags()
   }, [currentImgIndex, imgs])
 
   const imagePath = currentImgPath
@@ -183,6 +194,22 @@ function App() {
               }
               className="flex-1"
             />
+
+            <div className="self-center">
+              <BounceLoader color="#4b5563" loading={loadingTags} size={30} />
+            </div>
+
+            <ExternalScriptButton
+              script={autotagScript}
+              setScript={setAutotagScript}
+              args={[imagePath]}
+              onScriptStart={() => setLoadingTags(true)}
+              onScriptResolve={() => loadImageTags()}
+              onScriptEnd={() => setLoadingTags(false)}
+              disabled={loadingTags}
+            >
+              Auto Tagging
+            </ExternalScriptButton>
           </div>
         </main>
       </div>

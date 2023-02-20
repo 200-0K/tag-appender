@@ -19,7 +19,9 @@ const api = {
   renameFile: (oldPath, newPath) => ipcRenderer.invoke('file-rename', oldPath, newPath),
 
   getPreference: () => ipcRenderer.invoke('preference-store-get'),
-  updatePreference: (prefs) => ipcRenderer.invoke('preference-store-update', prefs)
+  updatePreference: (prefs) => ipcRenderer.invoke('preference-store-update', prefs),
+
+  executeScript: (script) => ipcRenderer.invoke('execute-script', script)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
