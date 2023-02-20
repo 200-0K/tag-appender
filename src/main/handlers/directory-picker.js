@@ -1,8 +1,8 @@
-import { ipcMain, dialog } from "electron";
+import { ipcMain, dialog, BrowserWindow } from 'electron'
 
-ipcMain.handle("directory-picker", async () => {
-  const picker = await dialog.showOpenDialog(null, {
-    properties: ["openDirectory"]
-  });
-  return picker.canceled ? null : picker.filePaths?.[0];
-});
+ipcMain.handle('directory-picker', async (event) => {
+  const picker = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender), {
+    properties: ['openDirectory']
+  })
+  return picker.canceled ? null : picker.filePaths?.[0].replace(/\\/g, '/')
+})
