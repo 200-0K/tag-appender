@@ -1,24 +1,23 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import path from "path"
 // import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
-const tagsPath = process.cwd()
-const resolveTagFilePath = filename => path.join(tagsPath, filename + ".ta")
 const api = {
-  directoryPicker: () => ipcRenderer.invoke("directory-picker"),
-  directoryScanner: (dir, options) => ipcRenderer.invoke("directory-scanner", dir, options),
+  directoryPicker: () => ipcRenderer.invoke('directory-picker'),
+  directoryScanner: (dir, options) => ipcRenderer.invoke('directory-scanner', dir, options),
 
-  profileScanner: () => ipcRenderer.invoke("directory-scanner", tagsPath, { filter: "ta", filenameOnly:true }),
+  profileScanner: () => ipcRenderer.invoke('directory-scanner', tagsPath, { filter: 'ta' }),
 
-  createTagFile: filename => ipcRenderer.invoke("file-create", resolveTagFilePath(filename)),
-  readTagFile: filename => ipcRenderer.invoke("file-read", resolveTagFilePath(filename), { delimiter: "\n" }),
-  appendTagToFile: (filename, tag) => ipcRenderer.invoke("file-write", resolveTagFilePath(filename), "\n" + tag),
+  createTagFile: (filepath) => ipcRenderer.invoke('file-create', filepath),
+  readTagFile: (filepath) => ipcRenderer.invoke('file-read', filepath, { delimiter: ',' }),
+  writeTagsToFile: (filepath, tags) => ipcRenderer.invoke('file-write', filepath, tags.join(',')),
+  appendTagToFile: (filepath, tag) => ipcRenderer.invoke('file-write', filepath, ',' + tag, { append: true }),
 
-  renameFile: (oldPath, newPath) => ipcRenderer.invoke("file-rename", oldPath, newPath),
+  moveFile: (src, dest) => ipcRenderer.invoke('file-move', src, dest),
+  renameFile: (oldPath, newPath) => ipcRenderer.invoke('file-rename', oldPath, newPath),
 
-  getPreference: () => ipcRenderer.invoke("preference-store-get"),
-  updatePreference: prefs => ipcRenderer.invoke("preference-store-update", prefs)
+  getPreference: () => ipcRenderer.invoke('preference-store-get'),
+  updatePreference: (prefs) => ipcRenderer.invoke('preference-store-update', prefs)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
