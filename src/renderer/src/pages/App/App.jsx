@@ -75,12 +75,12 @@ function App() {
 
   // update selected tags
   useEffect(() => {
+    setCurrentImgPath(imgs[currentImgIndex])
     if (!imgs[currentImgIndex]) return
     getImageTags(imgs[currentImgIndex]).then((imageTags) => {
       setImageTags(imageTags ?? [])
-      setSelectedTags(imageTags ?? selectedTags)
+      setSelectedTags(imageTags ?? selectedTags.filter(tag => tags.includes(tag)))
     })
-    setCurrentImgPath(imgs[currentImgIndex])
   }, [currentImgIndex, imgs])
 
   const imagePath = currentImgPath
@@ -159,6 +159,7 @@ function App() {
                   e.target.value = ''
                 }
               }}
+              disabled={!currentProfile}
             />
 
             {/* Tag List */}
