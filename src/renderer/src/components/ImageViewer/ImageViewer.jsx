@@ -5,6 +5,7 @@ import InputText from '../InputText'
 
 function ImageViewer({
   className,
+  disabled = false,
   imagePath,
   allowNext,
   allowPrev,
@@ -15,12 +16,7 @@ function ImageViewer({
 }) {
   const isThereImage = !!imagePath
   const imageName = isThereImage && getFileName(imagePath)
-
-  const handleRenameImage = async () => {
-    await onButtonClick?.(imagePath)
-    if (allowNext) onNext?.()
-  }
-
+  
   return (
     <div className={['flex flex-col gap-2 px-2', className].join(' ')}>
       <div className="flex gap-2">
@@ -36,8 +32,7 @@ function ImageViewer({
         <div className="flex gap-2 text-white select-none">
           <Button
             title="Previous"
-            // disabled={index - 1 < 0}
-            disabled={!allowPrev}
+            disabled={disabled || !allowPrev}
             onClick={onPrev}
           >
             &lt;
@@ -45,15 +40,17 @@ function ImageViewer({
           <Button
             title={buttonText}
             className="uppercase"
-            disabled={!isThereImage}
-            onClick={handleRenameImage}
+            disabled={disabled || !isThereImage}
+            onClick={async () => {
+              await onButtonClick?.(imagePath)
+              if (allowNext) onNext?.()
+            }}
           >
             {buttonText}
           </Button>
           <Button
             title="Next"
-            // disabled={index + 1 >= imgs.length}
-            disabled={!allowNext}
+            disabled={disabled || !allowNext}
             onClick={onNext}
           >
             &gt;
