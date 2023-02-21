@@ -202,10 +202,9 @@ function App() {
             <ExternalScriptButton
               script={autotagScript}
               setScript={setAutotagScript}
-              args={[imagePath]}
+              args={[`"${imagePath}"`]}
               onScriptStart={() => setLoadingTags(true)}
-              onScriptResolve={() => loadImageTags()}
-              onScriptEnd={() => setLoadingTags(false)}
+              onScriptEnd={() => loadImageTags()}
               disabled={loadingTags}
             >
               Auto Tagging
