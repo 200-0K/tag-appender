@@ -89,7 +89,8 @@ function App() {
   const loadImageTags = () => {
     setLoadingImageTags(true)
     getImageTags(imgs[currentImgIndex]).then((imageTags) => {
-      setImageTags(imageTags ?? [])
+      imageTags = imageTags ?? []
+      setImageTags(imageTags)
       const newSelectedTags = [...selectedTags.filter((tag) => tags.includes(tag)), ...imageTags]
       setSelectedTags(newSelectedTags)
       setLoadingImageTags(false)
