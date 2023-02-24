@@ -84,16 +84,14 @@ function App() {
   }, [currentProfile])
 
   // update selected tags
-  const loadImageTags = ({ keepSelectedTags = false } = {}) => {
+  const loadImageTags = () => {
     setLoadingImageTags(true)
     getImageTags(imgs[currentImgIndex]).then((imageTags) => {
       setImageTags(imageTags ?? [])
-      let newSelectedTags = imageTags ?? selectedTags.filter((tag) => tags.includes(tag))
-      if (keepSelectedTags)
-        newSelectedTags = Array.from(new Set([
-          ...selectedTags.filter((tag) => tags.includes(tag)),
-          ...newSelectedTags
-        ]))
+      const newSelectedTags = [
+        ...selectedTags.filter((tag) => tags.includes(tag)),
+        ...imageTags
+      ]
       setSelectedTags(newSelectedTags)
       setLoadingImageTags(false)
     })
@@ -219,7 +217,7 @@ function App() {
               setScript={setAutotagScript}
               args={[`"${imagePath}"`]}
               onScriptStart={() => setLoadingImageTags(true)}
-              onScriptEnd={() => loadImageTags({ keepSelectedTags: true })}
+              onScriptEnd={() => loadImageTags()}
               disabled={loadingImageTags}
             >
               Auto Tagging
