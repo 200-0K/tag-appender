@@ -7,6 +7,8 @@ import ImageViewer from '../../components/ImageViewer'
 import Toggle from '../../components/Toggle'
 import ProfileList from '../../components/ProfileList/ProfileList'
 
+import resetSvg from '../../assets/reset.svg'
+
 import { getImageTags, getTagsFromFile, appendTag, putTagsToImage, moveImage } from './utils/tags'
 import { getImages } from './utils/images'
 import { getProfiles } from './utils/profiles'
@@ -58,17 +60,17 @@ function App() {
   // directory changed
   const loadDir = (dir, { resetIndex = false } = {}) => {
     getImages(dir)
-    .then((newImgs) => {
-      let index = newImgs.findIndex((img) => img === currentImgPath)
-      if (resetIndex) index = 0
-      if (newImgs.length > 0) {
-        if (index == -1) index = 0
-      } else index = null // there are no images
-      setCurrentImgIndex(index)
+      .then((newImgs) => {
+        let index = newImgs.findIndex((img) => img === currentImgPath)
+        if (resetIndex) index = 0
+        if (newImgs.length > 0) {
+          if (index == -1) index = 0
+        } else index = null // there are no images
+        setCurrentImgIndex(index)
 
-      setImgs(newImgs ?? [])
-    })
-    .catch(console.error)
+        setImgs(newImgs ?? [])
+      })
+      .catch(console.error)
   }
   useEffect(() => {
     if (!dir) return
@@ -88,10 +90,7 @@ function App() {
     setLoadingImageTags(true)
     getImageTags(imgs[currentImgIndex]).then((imageTags) => {
       setImageTags(imageTags ?? [])
-      const newSelectedTags = [
-        ...selectedTags.filter((tag) => tags.includes(tag)),
-        ...imageTags
-      ]
+      const newSelectedTags = [...selectedTags.filter((tag) => tags.includes(tag)), ...imageTags]
       setSelectedTags(newSelectedTags)
       setLoadingImageTags(false)
     })
@@ -175,16 +174,27 @@ function App() {
             />
 
             {/* Tag Input */}
-            <InputText
-              placeholder="Tag"
-              onValueEnter={async (newTag, e) => {
-                if (await appendTag(currentProfile, newTag)) {
-                  setTags([...tags, newTag])
-                  e.target.value = ''
-                }
-              }}
-              disabled={!currentProfile}
-            />
+            <div className="flex gap-2">
+              <InputText
+                placeholder="Tag"
+                onValueEnter={async (newTag, e) => {
+                  if (await appendTag(currentProfile, newTag)) {
+                    setTags([...tags, newTag])
+                    e.target.value = ''
+                  }
+                }}
+                disabled={!currentProfile}
+                className="flex-1"
+              />
+              <button onClick={() => setSelectedTags(imageTags)}>
+                <img
+                  src={resetSvg}
+                  alt="Reset Selected Tags"
+                  title="Reset Selected Tags"
+                  className="w-6"
+                />
+              </button>
+            </div>
 
             {/* Tag List */}
             <SelectableList
