@@ -61,7 +61,7 @@ function ImageViewer({
         <img
           alt=""
           className="h-full object-contain mx-auto"
-          src={imagePath && encodeURI('imgx://' + imagePath)}
+          src={imagePath && encodeURI('imgx://' + imagePath).replace(/#/g, '%23')}
         />
       </div>
     </div>
