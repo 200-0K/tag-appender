@@ -91,7 +91,7 @@ function App() {
     getImageTags(imgs[currentImgIndex]).then((imageTags) => {
       imageTags = imageTags ?? []
       setImageTags(imageTags)
-      const newSelectedTags = [...selectedTags.filter((tag) => tags.includes(tag)), ...imageTags]
+      const newSelectedTags = [...new Set([...selectedTags.filter((tag) => tags.includes(tag)), ...imageTags])]
       setSelectedTags(newSelectedTags)
       setLoadingImageTags(false)
     })
@@ -187,7 +187,7 @@ function App() {
                 disabled={!currentProfile}
                 className="flex-1"
               />
-              <button onClick={() => setSelectedTags(imageTags)}>
+              <button onClick={() => setSelectedTags([...new Set(imageTags)])}>
                 <img
                   src={resetSvg}
                   alt="Reset Selected Tags"
