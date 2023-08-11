@@ -3,10 +3,10 @@ import { getFileName } from '../../../../../utils/path-format'
 import Button from '../Button'
 import InputText from '../InputText'
 
-function ImageViewer({
+function MediaViewer({
   className,
   disabled = false,
-  imagePath,
+  mediaPath,
   allowNext,
   allowPrev,
   onNext,
@@ -14,8 +14,8 @@ function ImageViewer({
   buttonText,
   onButtonClick
 }) {
-  const isThereImage = !!imagePath
-  const imageName = isThereImage && getFileName(imagePath)
+  const isThereMedia = !!mediaPath
+  const mediaName = isThereMedia && getFileName(mediaPath)
   
   return (
     <div className={['flex flex-col gap-2 px-2', className].join(' ')}>
@@ -23,8 +23,8 @@ function ImageViewer({
         {/* Image Name */}
         <InputText
           className="flex-1"
-          value={imageName || 'None'}
-          disabled={!isThereImage}
+          value={mediaName || 'None'}
+          disabled={!isThereMedia}
           readOnly
         />
 
@@ -40,9 +40,9 @@ function ImageViewer({
           <Button
             title={buttonText}
             className="uppercase"
-            disabled={disabled || !isThereImage}
+            disabled={disabled || !isThereMedia}
             onClick={async () => {
-              await onButtonClick?.(imagePath)
+              await onButtonClick?.(mediaPath)
               if (allowNext) onNext?.()
             }}
           >
@@ -61,11 +61,11 @@ function ImageViewer({
         <img
           alt=""
           className="h-full object-contain mx-auto"
-          src={imagePath && encodeURI('imgx://' + imagePath).replace(/#/g, '%23')}
+          src={mediaPath && encodeURI('imgx://' + mediaPath).replace(/#/g, '%23')}
         />
       </div>
     </div>
   )
 }
 
-export default React.memo(ImageViewer)
+export default React.memo(MediaViewer)

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import FileBrowser from '../../components/FileBrowser'
 import InputText from '../../components/InputText'
 import SelectableList from '../../components/SelectableList'
-import ImageViewer from '../../components/ImageViewer'
+import MediaViewer from '../../components/mediaViewer'
 import Toggle from '../../components/Toggle'
 import ProfileList from '../../components/ProfileList/ProfileList'
 
@@ -145,9 +145,9 @@ function App() {
 
         <main className={'flex-1 flex overflow-hidden px-4 pb-2'}>
           {/* Image Viewer & Controller */}
-          <ImageViewer
+          <MediaViewer
             className={'flex-1'}
-            imagePath={mediaPath}
+            mediaPath={mediaPath}
             allowNext={currentMediaIndex + 1 < medias.length}
             allowPrev={currentMediaIndex - 1 > -1}
             onNext={() => setCurrentMediaIndex(currentMediaIndex + 1)}
