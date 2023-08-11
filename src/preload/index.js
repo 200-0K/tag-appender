@@ -15,8 +15,8 @@ const api = {
   writeTagsToFile: (filepath, tags) => ipcRenderer.invoke('file-write', filepath, tags.join(',')),
   appendTagToFile: (filepath, tag) => ipcRenderer.invoke('file-write', filepath, ',' + tag, { append: true }),
 
-  moveFile: (src, dest) => ipcRenderer.invoke('file-move', src, dest),
-  renameFile: (oldPath, newPath) => ipcRenderer.invoke('file-rename', oldPath, newPath),
+  moveFile: (src, dest, options) => ipcRenderer.invoke('file-move', src, dest, options),
+  renameFile: (oldPath, newPath, options) => ipcRenderer.invoke('file-rename', oldPath, newPath, options),
 
   getPreference: () => ipcRenderer.invoke('preference-store-get'),
   updatePreference: (prefs) => ipcRenderer.invoke('preference-store-update', prefs),

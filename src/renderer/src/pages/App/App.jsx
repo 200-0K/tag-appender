@@ -9,7 +9,7 @@ import ProfileList from '../../components/ProfileList/ProfileList'
 
 import resetSvg from '../../assets/reset.svg'
 
-import { getImageTags, getTagsFromFile, appendTag, putTagsToImage, moveImage } from './utils/tags'
+import { getTagsFromFile, appendTag, putTagsToFile, moveMedia } from './utils/tags'
 import { getImages } from './utils/images'
 import { getProfiles } from './utils/profiles'
 import { directoryPicker } from '../../utils/pickers'
@@ -88,7 +88,7 @@ function App() {
   // update selected tags
   const loadMediaTags = () => {
     setLoadingMediaTags(true)
-    getImageTags(medias[currentMediaIndex]).then((mediaTags) => {
+    getTagsFromFile(medias[currentMediaIndex], { tagFileExt: 'txt' }).then((mediaTags) => {
       mediaTags = mediaTags ?? []
       setMediaTags(mediaTags)
       const newSelectedTags = [...new Set([...selectedTags.filter((tag) => tags.includes(tag)), ...mediaTags])]
@@ -156,10 +156,10 @@ function App() {
             buttonText="Tag"
             onButtonClick={async (mediaPath) => {
               if (mediaTags.length > 0 || selectedTags.length > 0)
-                await putTagsToImage(mediaPath, selectedTags.sort())
+                await putTagsToFile(mediaPath, selectedTags.sort(), { tagFileExt: 'txt' })
 
               if (moveLocation) {
-                const newMediaPath = await moveImage(mediaPath, moveLocation)
+                const newMediaPath = await moveMedia(mediaPath, moveLocation)
                 setMedias(medias.map((media) => (media === mediaPath ? newMediaPath : media)))
               }
             }}
