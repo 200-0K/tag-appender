@@ -2,10 +2,11 @@ const { ipcMain } = require('electron')
 const glob = require('glob')
 const path = require('path')
 const fs = require('fs')
+const mime = require('mime')
 
 const imageFormats = ['jpg', 'jpeg', 'png', 'bmp', 'webp', 'gif']
-const videoFormats = ['mp4', 'webm', 'avi', 'mov']
-const audioFormats = ['mp3']
+const videoFormats = ['mp4', 'webm', 'mkv', 'avi', 'mov']
+const audioFormats = ['mp3', 'wav', 'ogg']
 const filterNames = {
   images: imageFormats.join(','),
   videos: videoFormats.join(','),
@@ -27,11 +28,8 @@ ipcMain.handle(
     files = files.map((file) => ({
       path: file,
       pathMeta: JSON.parse(JSON.stringify(path.parse(file))),
-      type:
-        [['image', imageFormats], ['video', videoFormats], ['audio', audioFormats]].find(
-          ([name, formats]) => formats.some((format) => file.endsWith(`.${format}`))
-        )?.[0] ?? 'n/a',
-      sizeInMB: fs.statSync(file).size / (1024*1024)
+      type: mime.getType(file),
+      size: fs.statSync(file).size
     }))
 
     return files

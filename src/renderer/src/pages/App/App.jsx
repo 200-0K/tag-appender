@@ -15,6 +15,7 @@ import { getProfiles } from './utils/profiles'
 import { directoryPicker } from '../../utils/pickers'
 import BounceLoader from 'react-spinners/BounceLoader'
 import ExternalScriptButton from '../../components/ExternalScriptButton/ExternalScriptButton'
+import { humanFileSize } from './utils/bytes'
 
 function App() {
   const [loadingPrefs, setLoadingPrefs] = useState(true)
@@ -148,6 +149,11 @@ function App() {
           <MediaViewer
             className={'flex-1'}
             mediaPath={mediaPath}
+            mediaType={medias[currentMediaIndex]?.type}
+            mediaMeta={medias[currentMediaIndex] && [
+              `${medias[currentMediaIndex].type}`,
+              `${humanFileSize(medias[currentMediaIndex].size)}`
+            ]}
             allowNext={currentMediaIndex + 1 < medias.length}
             allowPrev={currentMediaIndex - 1 > -1}
             onNext={() => setCurrentMediaIndex(currentMediaIndex + 1)}
