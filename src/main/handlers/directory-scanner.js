@@ -1,9 +1,15 @@
-import { ipcMain } from 'electron'
-import glob from 'glob'
-import path from 'path'
+const { ipcMain } = require('electron')
+const glob = require('glob')
+const path = require('path')
+const fs = require('fs')
 
+const imageFormats = ['jpg', 'jpeg', 'png', 'bmp', 'webp', 'gif']
+const videoFormats = ['mp4', 'webm', 'avi', 'mov']
+const audioFormats = ['mp3']
 const filterNames = {
-  images: 'jpg,jpeg,png,gif'
+  images: imageFormats.join(','),
+  videos: videoFormats.join(','),
+  medias: [...imageFormats, ...videoFormats, ...audioFormats].join(',')
 }
 
 ipcMain.handle(
@@ -17,6 +23,17 @@ ipcMain.handle(
     let files = glob.sync(path.resolve(dir, `*${extFilter}`), { absolute })
     if (!absolute) files = files.map((file) => path.basename(file))
     if (filenameOnly) files = files.map((file) => path.parse(file).name)
-    return files.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+    files = files.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+    files = files.map((file) => ({
+      path: file,
+      pathMeta: JSON.parse(JSON.stringify(path.parse(file))),
+      type:
+        [['image', imageFormats], ['video', videoFormats], ['audio', audioFormats]].find(
+          ([name, formats]) => formats.some((format) => file.endsWith(`.${format}`))
+        )?.[0] ?? 'n/a',
+      sizeInMB: fs.statSync(file).size / (1024*1024)
+    }))
+
+    return files
   }
 )

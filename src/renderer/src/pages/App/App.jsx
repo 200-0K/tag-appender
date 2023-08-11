@@ -10,7 +10,7 @@ import ProfileList from '../../components/ProfileList/ProfileList'
 import resetSvg from '../../assets/reset.svg'
 
 import { getTagsFromFile, appendTag, putTagsToFile, moveMedia } from './utils/tags'
-import { getImages } from './utils/images'
+import { getMedias } from './utils/medias'
 import { getProfiles } from './utils/profiles'
 import { directoryPicker } from '../../utils/pickers'
 import BounceLoader from 'react-spinners/BounceLoader'
@@ -59,9 +59,9 @@ function App() {
 
   // directory changed
   const loadDir = (dir, { resetIndex = false } = {}) => {
-    getImages(dir)
+    getMedias(dir)
       .then((newMedias) => {
-        let index = newMedias.findIndex((media) => media === currentMediaPath)
+        let index = newMedias.findIndex((media) => media.path === currentMediaPath)
         if (resetIndex) index = 0
         if (newMedias.length > 0) {
           if (index == -1) index = 0
@@ -88,7 +88,7 @@ function App() {
   // update selected tags
   const loadMediaTags = () => {
     setLoadingMediaTags(true)
-    getTagsFromFile(medias[currentMediaIndex], { tagFileExt: 'txt' }).then((mediaTags) => {
+    getTagsFromFile(medias[currentMediaIndex].path, { tagFileExt: 'txt' }).then((mediaTags) => {
       mediaTags = mediaTags ?? []
       setMediaTags(mediaTags)
       const newSelectedTags = [...new Set([...selectedTags.filter((tag) => tags.includes(tag)), ...mediaTags])]
@@ -97,7 +97,7 @@ function App() {
     })
   }
   useEffect(() => {
-    setCurrentMediaPath(medias[currentMediaIndex])
+    setCurrentMediaPath(medias[currentMediaIndex]?.path)
     if (!medias[currentMediaIndex]) return
     loadMediaTags()
   }, [currentMediaIndex, medias])
@@ -160,7 +160,7 @@ function App() {
 
               if (moveLocation) {
                 const newMediaPath = await moveMedia(mediaPath, moveLocation)
-                setMedias(medias.map((media) => (media === mediaPath ? newMediaPath : media)))
+                setMedias(medias.map((media) => (media.path === mediaPath ? {...media, path: newMediaPath} : media)))
               }
             }}
           />
