@@ -18,28 +18,28 @@ import ExternalScriptButton from '../../components/ExternalScriptButton/External
 
 function App() {
   const [loadingPrefs, setLoadingPrefs] = useState(true)
-  const [loadingImageTags, setLoadingImageTags] = useState(true) // for auto tagging
+  const [loadingMediaTags, setLoadingMediaTags] = useState(true) // for auto tagging
   const [dir, setDir] = useState(null)
-  const [currentImgIndex, setCurrentImgIndex] = useState(null)
-  const [currentImgPath, setCurrentImgPath] = useState(null)
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(null)
+  const [currentMediaPath, setCurrentMediaPath] = useState(null)
   const [currentProfile, setCurrentProfile] = useState(null)
   const [moveLocation, setMoveLocation] = useState(null)
   const [autotagScript, setAutotagScript] = useState(null)
-  const [imgs, setImgs] = useState([])
+  const [medias, setMedias] = useState([])
   const [profiles, setProfiles] = useState([])
   const [tags, setTags] = useState([])
-  const [imageTags, setImageTags] = useState([])
+  const [mediaTags, setMediaTags] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
 
   // init
   useEffect(() => {
     const init = async () => {
-      const { dir, currentImgPath, currentProfile, moveLocation, autotagScript } =
+      const { dir, currentMediaPath, currentProfile, moveLocation, autotagScript } =
         await window.api.getPreference()
       const profiles = (await getProfiles()) ?? []
       setDir(dir)
-      setCurrentImgIndex(currentImgIndex)
-      setCurrentImgPath(currentImgPath)
+      setCurrentMediaIndex(currentMediaIndex)
+      setCurrentMediaPath(currentMediaPath)
       setMoveLocation(moveLocation)
       setAutotagScript(autotagScript)
       setProfiles(profiles)
@@ -53,22 +53,22 @@ function App() {
   useEffect(() => {
     if (loadingPrefs) return // to avoid overwriting preference file with default values
     window.api
-      .updatePreference({ dir, currentImgPath, currentProfile, moveLocation, autotagScript })
+      .updatePreference({ dir, currentMediaPath, currentProfile, moveLocation, autotagScript })
       .catch(console.error)
-  }, [dir, currentImgPath, currentProfile, moveLocation, autotagScript])
+  }, [dir, currentMediaPath, currentProfile, moveLocation, autotagScript])
 
   // directory changed
   const loadDir = (dir, { resetIndex = false } = {}) => {
     getImages(dir)
-      .then((newImgs) => {
-        let index = newImgs.findIndex((img) => img === currentImgPath)
+      .then((newMedias) => {
+        let index = newMedias.findIndex((media) => media === currentMediaPath)
         if (resetIndex) index = 0
-        if (newImgs.length > 0) {
+        if (newMedias.length > 0) {
           if (index == -1) index = 0
         } else index = null // there are no images
-        setCurrentImgIndex(index)
+        setCurrentMediaIndex(index)
 
-        setImgs(newImgs ?? [])
+        setMedias(newMedias ?? [])
       })
       .catch(console.error)
   }
@@ -86,23 +86,23 @@ function App() {
   }, [currentProfile])
 
   // update selected tags
-  const loadImageTags = () => {
-    setLoadingImageTags(true)
-    getImageTags(imgs[currentImgIndex]).then((imageTags) => {
-      imageTags = imageTags ?? []
-      setImageTags(imageTags)
-      const newSelectedTags = [...new Set([...selectedTags.filter((tag) => tags.includes(tag)), ...imageTags])]
+  const loadMediaTags = () => {
+    setLoadingMediaTags(true)
+    getImageTags(medias[currentMediaIndex]).then((mediaTags) => {
+      mediaTags = mediaTags ?? []
+      setMediaTags(mediaTags)
+      const newSelectedTags = [...new Set([...selectedTags.filter((tag) => tags.includes(tag)), ...mediaTags])]
       setSelectedTags(newSelectedTags)
-      setLoadingImageTags(false)
+      setLoadingMediaTags(false)
     })
   }
   useEffect(() => {
-    setCurrentImgPath(imgs[currentImgIndex])
-    if (!imgs[currentImgIndex]) return
-    loadImageTags()
-  }, [currentImgIndex, imgs])
+    setCurrentMediaPath(medias[currentMediaIndex])
+    if (!medias[currentMediaIndex]) return
+    loadMediaTags()
+  }, [currentMediaIndex, medias])
 
-  const imagePath = currentImgPath
+  const mediaPath = currentMediaPath
   return (
     !loadingPrefs && (
       <div className="flex flex-col h-screen text-xs">
@@ -110,9 +110,9 @@ function App() {
           {/* dir stats */}
           <aside className="grid grid-cols-2 justify-items-center uppercase">
             <p>Total</p>
-            <p>{imgs.length}</p>
+            <p>{medias.length}</p>
             <p>Remaining</p>
-            <p>{imgs.length && imgs.length - (currentImgIndex + 1)}</p>
+            <p>{medias.length && medias.length - (currentMediaIndex + 1)}</p>
           </aside>
 
           {/* directory picker */}
@@ -123,7 +123,7 @@ function App() {
                 loadDir(newDir)
               } else {
                 setDir(newDir)
-                setCurrentImgIndex(0)
+                setCurrentMediaIndex(0)
               }
             }}
             className="flex-1"
@@ -147,20 +147,20 @@ function App() {
           {/* Image Viewer & Controller */}
           <ImageViewer
             className={'flex-1'}
-            imagePath={imagePath}
-            allowNext={currentImgIndex + 1 < imgs.length}
-            allowPrev={currentImgIndex - 1 > -1}
-            onNext={() => setCurrentImgIndex(currentImgIndex + 1)}
-            onPrev={() => setCurrentImgIndex(currentImgIndex - 1)}
-            disabled={loadingImageTags}
+            imagePath={mediaPath}
+            allowNext={currentMediaIndex + 1 < medias.length}
+            allowPrev={currentMediaIndex - 1 > -1}
+            onNext={() => setCurrentMediaIndex(currentMediaIndex + 1)}
+            onPrev={() => setCurrentMediaIndex(currentMediaIndex - 1)}
+            disabled={loadingMediaTags}
             buttonText="Tag"
-            onButtonClick={async (imagePath) => {
-              if (imageTags.length > 0 || selectedTags.length > 0)
-                await putTagsToImage(imagePath, selectedTags.sort())
+            onButtonClick={async (mediaPath) => {
+              if (mediaTags.length > 0 || selectedTags.length > 0)
+                await putTagsToImage(mediaPath, selectedTags.sort())
 
               if (moveLocation) {
-                const newImagePath = await moveImage(imagePath, moveLocation)
-                setImgs(imgs.map((img) => (img === imagePath ? newImagePath : img)))
+                const newMediaPath = await moveImage(mediaPath, moveLocation)
+                setMedias(medias.map((media) => (media === mediaPath ? newMediaPath : media)))
               }
             }}
           />
@@ -187,7 +187,7 @@ function App() {
                 disabled={!currentProfile}
                 className="flex-1"
               />
-              <button onClick={() => setSelectedTags([...new Set(imageTags)])}>
+              <button onClick={() => setSelectedTags([...new Set(mediaTags)])}>
                 <img
                   src={resetSvg}
                   alt="Reset Selected Tags"
@@ -201,9 +201,9 @@ function App() {
             <SelectableList
               items={[
                 ...tags.map((tag) =>
-                  imageTags.includes(tag) ? { value: tag, color: 'green' } : tag
+                  mediaTags.includes(tag) ? { value: tag, color: 'green' } : tag
                 ),
-                ...imageTags
+                ...mediaTags
                   .filter((tag) => !tags.includes(tag))
                   .map((tag) => ({ value: tag, color: 'yellow' }))
               ]}
@@ -220,16 +220,16 @@ function App() {
             />
 
             <div className="self-center">
-              <BounceLoader color="#4b5563" loading={loadingImageTags} size={30} />
+              <BounceLoader color="#4b5563" loading={loadingMediaTags} size={30} />
             </div>
 
             <ExternalScriptButton
               script={autotagScript}
               setScript={setAutotagScript}
-              args={[`"${imagePath}"`]}
-              onScriptStart={() => setLoadingImageTags(true)}
-              onScriptEnd={() => loadImageTags()}
-              disabled={loadingImageTags}
+              args={[`"${mediaPath}"`]}
+              onScriptStart={() => setLoadingMediaTags(true)}
+              onScriptEnd={() => loadMediaTags()}
+              disabled={loadingMediaTags}
             >
               Auto Tagging
             </ExternalScriptButton>
