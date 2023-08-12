@@ -1,5 +1,5 @@
 const { ipcMain } = require('electron')
-const glob = require('glob')
+const { glob } = require('glob')
 const path = require('path')
 const fs = require('fs')
 const mime = require('mime')

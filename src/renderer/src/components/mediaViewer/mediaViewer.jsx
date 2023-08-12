@@ -23,7 +23,7 @@ function MediaViewer({
 
   let mediaTag
   if (mediaType?.toLowerCase().startsWith('image')) {
-    mediaTag = <img alt="" className="h-full object-contain mx-auto" src={mediaSrc} />
+    mediaTag = <img alt="" className="h-full object-contain mx-auto" src={mediaSrc ? mediaSrc : undefined} />
   } else if (mediaType?.toLowerCase().startsWith('video') || mediaType?.toLowerCase().startsWith('audio')) {
     mediaTag = (
       <VideoJS key={mediaType} options={{

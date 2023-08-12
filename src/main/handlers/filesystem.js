@@ -53,13 +53,12 @@ function renameFileSync(oldPath, newPath, options = {}) {
   const { withSiblings } = options
 
   fs.renameSync(oldPath, newPath)
-  console.log(`- Renamed: '${oldPath}' to '${newPath}'`);
+
   if (withSiblings) {
     const siblings = getSiblings(oldPath) ?? []
     const parsedNewPath = path.parse(newPath)
     siblings.forEach((sibling) => {
       fs.renameSync(sibling, path.join(parsedNewPath.dir, path.basename(sibling)))
-      console.log(`\t- Renamed Sibling: '${sibling}' to '${path.join(parsedNewPath.dir, path.basename(sibling))}'`);
     })
   }
 }
