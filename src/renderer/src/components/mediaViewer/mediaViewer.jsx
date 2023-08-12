@@ -2,7 +2,7 @@ import React from 'react'
 import { getFileName } from '../../../../../utils/path-format'
 import Button from '../Button'
 import InputText from '../InputText'
-import VideoJS from '../Videojs'
+import VideoJS, { getPlayer } from '../Videojs'
 
 function MediaViewer({
   className,
@@ -35,8 +35,9 @@ function MediaViewer({
         fill: mediaType?.toLowerCase().startsWith('video'),
         sources: [{
           src: mediaSrc,
-          type: mediaType
-        }]
+          // type: mediaType
+        }],
+        id: 'player'
       }} />
     )
   }
@@ -68,6 +69,7 @@ function MediaViewer({
               className="uppercase py-2"
               disabled={disabled || !isThereMedia}
               onClick={async () => {
+                getPlayer('player')?.dispose();
                 await onButtonClick?.(mediaPath)
                 if (allowNext) onNext?.()
               }}

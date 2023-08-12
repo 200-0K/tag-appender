@@ -1,1 +1,1 @@
-export { default } from './video'
+export { default, getPlayer } from './Video'

@@ -26,13 +26,12 @@ export const VideoJS = (props) => {
       // on prop change, for example:
     } else {
       const player = playerRef.current
-      player.setAttribute('key', options.key)
 
       player.autoplay(options.autoplay)
       player.src(options.sources)
-      player.on('error', e => {
-        options.onerror?.(e, player.error());
-      });
+      player.on('error', (e) => {
+        options.onerror?.(e, player.error())
+      })
     }
   }, [options, videoRef])
 
@@ -48,7 +47,7 @@ export const VideoJS = (props) => {
     }
   }, [playerRef])
 
-  videojs.options.autoSetup = false;
+  videojs.options.autoSetup = false
   return (
     <div data-vjs-player className="h-full">
       <div ref={videoRef} className="h-full" />
@@ -57,3 +56,7 @@ export const VideoJS = (props) => {
 }
 
 export default VideoJS
+
+export function getPlayer(id) {
+  return videojs.getPlayer(id)
+}

@@ -54,20 +54,25 @@ function renameFileSync(oldPath, newPath, options = {}) {
   const { withSiblings } = options
 
   fs.renameSync(oldPath, newPath)
+  console.log(`- Renamed: '${oldPath}' to '${newPath}'`);
   if (withSiblings) {
-    const siblings = getSiblings(oldPath, { absolute: true }) ?? []
+    const siblings = getSiblings(oldPath) ?? []
     const parsedNewPath = path.parse(newPath)
     siblings.forEach((sibling) => {
       fs.renameSync(sibling, path.join(parsedNewPath.dir, path.basename(sibling)))
+      console.log(`\t- Renamed Sibling: '${sibling}' to '${path.join(parsedNewPath.dir, path.basename(sibling))}'`);
     })
   }
 }
 
-function getSiblings(filePath, options = {}) {
-  const { absolute } = options
+function getSiblings(filePath) {
   if (!filePath) return null
   const parsedFile = path.parse(filePath)
-  const pattern = path.join(parsedFile.dir, `${parsedFile.name}.*`)
-  const siblings = glob.sync(pattern, { absolute })
+  const dir = path.resolve(parsedFile.dir)
+  const dirFiles = fs.readdirSync(dir);
+  const siblings = dirFiles.map(file => path.join(dir, file)).filter(filePath => {
+    const tempParsed = path.parse(filePath);
+    return tempParsed.name === parsedFile.name;
+  })  
   return siblings
 }
