@@ -1,7 +1,6 @@
 import { ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
-import glob from 'glob'
 
 ipcMain.handle('file-create', (event, file) => {
   try {
