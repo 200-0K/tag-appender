@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { getFileName } from '../../../../../utils/path-format'
 import Button from '../Button'
 import InputText from '../InputText'
@@ -21,26 +21,31 @@ function MediaViewer({
   const mediaName = isThereMedia && getFileName(mediaPath)
   const mediaSrc = isThereMedia && encodeURI('imgx://' + mediaPath).replace(/#/g, '%23')
 
-  let mediaTag
-  if (mediaType?.toLowerCase().startsWith('image')) {
-    mediaTag = <img alt="" className="h-full object-contain mx-auto" src={mediaSrc ? mediaSrc : undefined} />
-  } else if (mediaType?.toLowerCase().startsWith('video') || mediaType?.toLowerCase().startsWith('audio')) {
-    mediaTag = (
-      <VideoJS key={mediaType} options={{
-        autoplay: true,
-        controls: true,
-        responsive: true,
-        fluid: mediaType?.toLowerCase().startsWith('audio'),
-        audioOnlyMode: mediaType?.toLowerCase().startsWith('audio'),
-        fill: mediaType?.toLowerCase().startsWith('video'),
-        sources: [{
-          src: mediaSrc,
-          // type: mediaType
-        }],
-        id: 'player'
-      }} />
-    )
-  }
+  let [mediaTag, setMediaTag] = useState();
+  
+  useEffect(() => {
+    let tag = null;
+    if (mediaType?.toLowerCase().startsWith('image')) {
+      tag = <img alt="" className="h-full object-contain mx-auto" src={mediaSrc ? mediaSrc : undefined} />
+    } else if (mediaType?.toLowerCase().startsWith('video') || mediaType?.toLowerCase().startsWith('audio')) {
+      tag = (
+        <VideoJS key={mediaType} options={{
+          autoplay: true,
+          controls: true,
+          responsive: true,
+          fluid: mediaType?.toLowerCase().startsWith('audio'),
+          audioOnlyMode: mediaType?.toLowerCase().startsWith('audio'),
+          fill: mediaType?.toLowerCase().startsWith('video'),
+          sources: [{
+            src: mediaSrc,
+            // type: mediaType
+          }],
+          id: 'player'
+        }} />
+      )
+    }
+    setMediaTag(tag);
+  }, [mediaSrc]);
 
   return (
     <div className={['flex flex-col gap-2 px-2', className].join(' ')}>
@@ -94,6 +99,7 @@ function MediaViewer({
           ))}
         </div>
       </div>
+      {/* Media Viewer */}
       <div className="h-full overflow-hidden select-none">{mediaTag}</div>
     </div>
   )
