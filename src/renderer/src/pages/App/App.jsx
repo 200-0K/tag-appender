@@ -147,6 +147,7 @@ function App() {
         <main className={'flex-1 flex overflow-hidden px-4 pb-2'}>
           {/* Image Viewer & Controller */}
           <MediaViewer
+            key={`${medias[currentMediaIndex]}`}
             className={'flex-1'}
             mediaPath={mediaPath}
             mediaType={medias[currentMediaIndex]?.type}
