@@ -9,7 +9,7 @@ export const VideoJS = (props) => {
 
   React.useEffect(() => {
     // Make sure Video.js player is only initialized once
-    if (!playerRef.current) {
+    if (!playerRef.current || playerRef.current.isDisposed()) {
       // The Video.js player needs to be _inside_ the component el for React 18 Strict Mode.
       const videoElement = document.createElement('video-js')
       // options.key && videoElement.setAttribute('key', options.key);

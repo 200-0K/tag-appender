@@ -17,12 +17,13 @@ function MediaViewer({
   buttonText,
   onButtonClick
 }) {
+  const playerId = 'player'; // resolveMediaId(mediaPath)
   const isThereMedia = !!mediaPath
   const mediaName = isThereMedia && getFileName(mediaPath)
   const mediaSrc = isThereMedia && encodeURI('imgx://' + mediaPath).replace(/#/g, '%23')
 
   let [mediaTag, setMediaTag] = useState();
-  
+
   useEffect(() => {
     let tag = null;
     if (mediaType?.toLowerCase().startsWith('image')) {
@@ -40,7 +41,7 @@ function MediaViewer({
             src: mediaSrc,
             // type: mediaType
           }],
-          id: 'player'
+          id: playerId,
         }} />
       )
     }
@@ -74,7 +75,7 @@ function MediaViewer({
               className="uppercase py-2"
               disabled={disabled || !isThereMedia}
               onClick={async () => {
-                getPlayer('player')?.dispose();
+                getPlayer(playerId)?.dispose();
                 await onButtonClick?.(mediaPath)
                 if (allowNext) onNext?.()
               }}
