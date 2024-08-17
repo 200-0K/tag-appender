@@ -172,7 +172,7 @@ function App() {
               }
             }}
             statusHtml={
-              mediaPath.startsWith(moveLocation) ? <IconCheck color="green" /> : null
+              mediaPath?.startsWith(moveLocation) ? <IconCheck color="green" /> : null
             }
           />
 
