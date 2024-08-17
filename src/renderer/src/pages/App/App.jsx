@@ -16,6 +16,7 @@ import { directoryPicker } from '../../utils/pickers'
 import BounceLoader from 'react-spinners/BounceLoader'
 import ExternalScriptButton from '../../components/ExternalScriptButton/ExternalScriptButton'
 import { humanFileSize } from './utils/bytes'
+import { IconCheck } from '@tabler/icons-react'
 
 function App() {
   const [loadingPrefs, setLoadingPrefs] = useState(true)
@@ -170,6 +171,9 @@ function App() {
                 setMedias(medias.map((media) => (media.path === mediaPath ? {...media, path: newMediaPath} : media)))
               }
             }}
+            statusHtml={
+              mediaPath.startsWith(moveLocation) ? <IconCheck color="green" /> : null
+            }
           />
 
           {/* Right Section */}

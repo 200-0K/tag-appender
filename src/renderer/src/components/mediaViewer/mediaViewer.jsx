@@ -15,7 +15,8 @@ function MediaViewer({
   onNext,
   onPrev,
   buttonText,
-  onButtonClick
+  onButtonClick,
+  statusHtml = null,
 }) {
   const playerId = 'player'; // resolveMediaId(mediaPath)
   const isThereMedia = !!mediaPath
@@ -52,6 +53,8 @@ function MediaViewer({
     <div className={['flex flex-col gap-2 px-2', className].join(' ')}>
       <div className="flex flex-col gap-1">
         <div className="flex gap-2 items-center">
+          {statusHtml}
+
           {/* Image Name */}
           <InputText
             className="flex-1 py-4"
