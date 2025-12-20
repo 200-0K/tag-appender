@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 import FileBrowser from '../../components/FileBrowser'
 import { cn } from './utils/cn'
@@ -183,6 +183,26 @@ function App() {
     putTagsToFile(currentProfile, newTags, { groups: newGroups ?? groups }).catch(console.error)
   }
 
+  const handleMediaLoaded = useCallback(
+    (dimensions) => {
+      setMedias((prevMedias) => {
+        const currentMedia = prevMedias[currentMediaIndex]
+        if (!currentMedia) return prevMedias
+
+        if (
+          currentMedia.dimensions?.width === dimensions.width &&
+          currentMedia.dimensions?.height === dimensions.height
+        )
+          return prevMedias
+
+        const newMedias = [...prevMedias]
+        newMedias[currentMediaIndex] = { ...currentMedia, dimensions }
+        return newMedias
+      })
+    },
+    [currentMediaIndex]
+  )
+
   const mediaPath = currentMediaPath
   return (
     !loadingPrefs && (
@@ -223,17 +243,22 @@ function App() {
             className={'flex-1'}
             mediaPath={mediaPath}
             mediaType={medias[currentMediaIndex]?.type}
-            mediaMeta={medias[currentMediaIndex] && [
-              `${medias[currentMediaIndex].type}`,
-              `${humanFileSize(medias[currentMediaIndex].size)}`,
-              // `${medias[currentMediaIndex].dimensions?.width}x${medias[currentMediaIndex].dimensions?.height}` //TODO: fix dimension reading
-            ]}
+            mediaMeta={
+              medias[currentMediaIndex] && [
+                `${medias[currentMediaIndex].type}`,
+                `${humanFileSize(medias[currentMediaIndex].size)}`,
+                medias[currentMediaIndex].dimensions
+                  ? `${medias[currentMediaIndex].dimensions.width}x${medias[currentMediaIndex].dimensions.height}`
+                  : '...'
+              ]
+            }
             allowNext={currentMediaIndex + 1 < medias.length}
             allowPrev={currentMediaIndex - 1 > -1}
             onNext={() => setCurrentMediaIndex(currentMediaIndex + 1)}
             onPrev={() => setCurrentMediaIndex(currentMediaIndex - 1)}
             disabled={loadingMediaTags}
             buttonText="Tag"
+            onMediaLoaded={handleMediaLoaded}
             onButtonClick={async (mediaPath) => {
               if (mediaTags.length > 0 || selectedTags.length > 0)
                 await putTagsToFile(mediaPath, selectedTags.sort(), { tagFileExt: 'txt' })
