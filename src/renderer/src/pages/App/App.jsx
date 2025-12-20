@@ -104,6 +104,14 @@ function App() {
     loadMediaTags()
   }, [currentMediaIndex, medias])
 
+  const handleReorder = (reorderedItems) => {
+    const reorderedTagValues = reorderedItems.map((item) => item.value ?? item)
+    const newProfileTags = reorderedTagValues.filter((tag) => tags.includes(tag))
+
+    setTags(newProfileTags)
+    putTagsToFile(currentProfile, newProfileTags).catch(console.error)
+  }
+
   const mediaPath = currentMediaPath
   return (
     !loadingPrefs && (
@@ -227,6 +235,7 @@ function App() {
                   else return [...oldSelectedTags.filter((oldTag) => oldTag !== tag)]
                 })
               }
+              onReorder={handleReorder}
               className="flex-1"
             />
 
