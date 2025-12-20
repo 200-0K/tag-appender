@@ -10,7 +10,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        'sans': ['Inter', ...defaultTheme.fontFamily.sans],
+        'sans': ['Inter Variable', 'Inter', ...defaultTheme.fontFamily.sans],
       },
       colors: {
         // surface and card tones for the dark theme
