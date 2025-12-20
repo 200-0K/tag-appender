@@ -58,19 +58,19 @@ function MediaViewer({
         <div className="flex gap-2 items-center">
           {statusHtml}
           {canUndo && (
-              <Button
-                title={undoButtonText}
-                className="uppercase py-2"
-                disabled={disabled}
-                onClick={() => onUndoClick?.(mediaPath)}
-              >
-                {undoButtonText}
-              </Button>
-            )}
+            <Button
+              title={undoButtonText}
+              className="uppercase py-2"
+              disabled={disabled}
+              onClick={() => onUndoClick?.(mediaPath)}
+            >
+              {undoButtonText}
+            </Button>
+          )}
 
           {/* Image Name */}
           <InputText
-            className="flex-1 py-4"
+            className="flex-1"
             value={mediaName || 'None'}
             disabled={!isThereMedia}
             title={mediaPath}
@@ -78,7 +78,7 @@ function MediaViewer({
           />
 
           {/* Image Controller */}
-          <div className="flex gap-2 text-white select-none">
+          <div className="flex gap-2 text-slate-900 dark:text-slate-200 select-none">
             <Button
               title="Previous"
               className="py-2"
@@ -118,7 +118,7 @@ function MediaViewer({
         </div>
       </div>
       {/* Media Viewer */}
-      <div className="h-full overflow-hidden select-none">{mediaTag}</div>
+      <div className="h-full overflow-hidden select-none bg-slate-900 rounded-lg border border-slate-800 p-3">{mediaTag}</div>
     </div>
   )
 }

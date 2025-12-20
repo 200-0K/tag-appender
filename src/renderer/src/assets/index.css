@@ -1,3 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+	/* Provide a fallback stack; Tailwind's fontFamily is set to Inter in tailwind.config.js */
+	--ui-font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+html, body, #root {
+	font-family: var(--ui-font-sans);
+}
+
+/* Optional: small scrollbar style for dark theme */
+@layer utilities {
+	.scrollbar-thin {
+		scrollbar-width: thin;
+	}
+	.scrollbar-thumb-slate {
+		scrollbar-color: rgba(148,163,184,0.6) transparent;
+	}
+}
+
+/* Dark-mode scrollbars */
+html.dark ::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+html.dark ::-webkit-scrollbar-track {
+	background: transparent;
+}
+html.dark ::-webkit-scrollbar-thumb {
+	background-color: rgba(148,163,184,0.18);
+	border-radius: 9999px;
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+	background-color: rgba(148,163,184,0.32);
+}
+
+/* Light-mode scrollbars */
+html:not(.dark) ::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+html:not(.dark) ::-webkit-scrollbar-thumb {
+	background-color: rgba(107,114,128,0.22);
+	border-radius: 9999px;
+}
+
+/* Firefox scrollbar colors */
+html.dark {
+	scrollbar-color: rgba(148,163,184,0.18) transparent;
+}
+html:not(.dark) {
+	scrollbar-color: rgba(107,114,128,0.25) transparent;
+}
+
+/* Light-mode overrides: transform many dark utility classes into light equivalents
+	 This provides a pragmatic, global mapping so toggling `dark` on <html> shows
+	 a light UI even where components use hardcoded dark utility classes. */
+html:not(.dark) {
+	--override-bg: #f8fafc; /* slate-50 */
+	--override-card: #ffffff;
+	--override-text: #0f172a; /* slate-900 */
+	--override-border: #e2e8f0; /* slate-200 */
+}
+
+/* Backgrounds */
+html:not(.dark) [class*="bg-slate-800"] {
+	background-color: var(--override-bg) !important;
+}
+html:not(.dark) [class*="bg-slate-900"] {
+	background-color: var(--override-card) !important;
+}
+
+/* Text */
+html:not(.dark) [class*="text-slate-200"] {
+	color: var(--override-text) !important;
+}
+html:not(.dark) [class*="text-white"] {
+	color: var(--override-text) !important;
+}
+
+/* Borders */
+html:not(.dark) [class*="border-slate-700"] {
+	border-color: var(--override-border) !important;
+}
+
+/* Inputs / selects that used drop-down background */
+html:not(.dark) [class*="bg-drop-down"] {
+	background-color: var(--override-card) !important;
+	color: var(--override-text) !important;
+}
+
+/* Buttons with dark backgrounds should fall back to lighter neutral in light mode */
+html:not(.dark) [class*="bg-indigo-600"] {
+	/* keep accent but ensure contrast */
+	background-color: #4f46e5 !important;
+	color: #fff !important;
+}
+
+/* Reusable thin scrollbar utility class */
+.thin-scrollbar {
+	scrollbar-width: thin; /* Firefox */
+}
+.thin-scrollbar::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+	background: transparent;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+	background-color: rgba(148,163,184,0.12);
+	border-radius: 9999px;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+	background-color: rgba(148,163,184,0.24);
+}

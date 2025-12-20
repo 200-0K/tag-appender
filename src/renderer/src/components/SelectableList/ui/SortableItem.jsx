@@ -1,4 +1,5 @@
 import React from 'react'
+import { cn } from '../../../pages/App/utils/cn'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { IconGripVertical } from '@tabler/icons-react'
@@ -19,18 +20,32 @@ export function SortableItem({ id, item, isSelected, onSelect, idx }) {
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center bg-white border border-black/40 group"
+      className={cn(
+        'flex items-center border rounded-md',
+        'transition-colors',
+        // base dark item appearance
+        'bg-slate-800 border-slate-700',
+        // selected variants applied to whole item
+        {
+          'bg-emerald-500 text-white border-emerald-500 shadow-md': isSelected && item.color === 'green',
+          'bg-amber-500 text-slate-900 border-amber-500 shadow-md': isSelected && item.color === 'yellow',
+          'bg-indigo-600 text-white border-indigo-600 shadow-md': isSelected && item.color !== 'green' && item.color !== 'yellow'
+        }
+      )}
     >
       <div
         {...attributes}
         {...listeners}
-        className="p-1 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+        className={cn('p-1 cursor-grab active:cursor-grabbing', {
+          'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200': !isSelected,
+          'text-white': isSelected
+        })}
       >
         <IconGripVertical size={16} />
       </div>
       <div className="flex-1 min-w-0">
         <input
-          className="hidden peer"
+          className="hidden"
           id={`item-${idx}`}
           type="checkbox"
           value={item.value ?? item}
@@ -44,12 +59,11 @@ export function SortableItem({ id, item, isSelected, onSelect, idx }) {
           }}
         />
         <label
-          className={[
-            'cursor-pointer block py-2 px-1 break-words',
-            (item.color === 'green' && `peer-checked:bg-green-400`) ||
-              (item.color === 'yellow' && `peer-checked:bg-yellow-400`) ||
-              'peer-checked:bg-blue-400'
-          ].join(' ')}
+          className={cn('cursor-pointer block py-2 px-3 break-words truncate', {
+              // label text color: dark in light-mode, light in dark-mode when not selected
+              'text-slate-900 dark:text-slate-200': !isSelected,
+            'text-white': isSelected
+          })}
           htmlFor={`item-${idx}`}
         >
           {item.value ?? item}

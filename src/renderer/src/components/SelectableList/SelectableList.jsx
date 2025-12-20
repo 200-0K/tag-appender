@@ -40,7 +40,7 @@ function SelectableList({ items, selectedItems, onSelect, onReorder, className }
   return (
     <div
       className={[
-        'flex flex-col border border-black/50 border-dashed select-none overflow-auto overflow-x-hidden',
+        'flex flex-col  rounded-xl bg-slate-800/30 select-none overflow-auto overflow-x-hidden space-y-1 thin-scrollbar',
         className
       ].join(' ')}
     >

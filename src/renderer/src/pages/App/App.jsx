@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 
 import FileBrowser from '../../components/FileBrowser'
+import { cn } from './utils/cn'
 import InputText from '../../components/InputText'
 import SelectableList from '../../components/SelectableList'
 import MediaViewer from '../../components/mediaViewer'
 import Toggle from '../../components/Toggle'
 import ProfileList from '../../components/ProfileList/ProfileList'
 
-import resetSvg from '../../assets/reset.svg'
+// reset icon replaced by Tabler icon for theme-aware rendering
 
 import { getTagsFromFile, appendTag, putTagsToFile, moveMedia } from './utils/tags'
 import { getMedias } from './utils/medias'
@@ -17,7 +18,7 @@ import { directoryPicker } from '../../utils/pickers'
 import BounceLoader from 'react-spinners/BounceLoader'
 import ExternalScriptButton from '../../components/ExternalScriptButton/ExternalScriptButton'
 import { humanFileSize } from './utils/bytes'
-import { IconCheck } from '@tabler/icons-react'
+import { IconCheck, IconSun, IconMoon, IconRefresh, IconFolder, IconFolderSymlink, IconArrowRight, IconArrowLeft, IconFolderBolt, IconFolderShare } from '@tabler/icons-react'
 import { inLocation, getFileParentPath } from '../../../../../utils/path-format'
 
 function App() {
@@ -35,6 +36,25 @@ function App() {
   const [mediaTags, setMediaTags] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [movedHistory, setMovedHistory] = useState({}) // { newPath: originalPath }
+
+  // Theme state: default to dark; persisted in localStorage
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem('theme') ?? 'dark'
+    } catch (e) {
+      return 'dark'
+    }
+  })
+
+  useEffect(() => {
+    try {
+      if (theme === 'dark') document.documentElement.classList.add('dark')
+      else document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', theme)
+    } catch (e) {
+      // ignore
+    }
+  }, [theme])
 
   // init
   useEffect(() => {
@@ -107,6 +127,7 @@ function App() {
       .then((newTags) => setTags(newTags ?? []))
       .catch(console.error)
     setSelectedTags([])
+    if (medias[currentMediaIndex]) loadMediaTags()
   }, [currentProfile])
 
   // update selected tags
@@ -160,8 +181,13 @@ function App() {
   const mediaPath = currentMediaPath
   return (
     !loadingPrefs && (
-      <div className="flex flex-col h-screen text-xs">
-        <header className="flex gap-4 px-4 py-2 w-full">
+      <div
+        className={cn(
+          'flex flex-col h-screen text-xs',
+          theme === 'dark' ? 'bg-surface text-slate-200' : 'bg-slate-50 text-slate-900'
+        )}
+      >
+        <header className="flex gap-4 px-4 py-2 w-full items-center bg-slate-900/40 border-b border-slate-800 text-slate-900 dark:text-slate-200">
           {/* dir stats */}
           <aside className="grid grid-cols-2 justify-items-center uppercase">
             <p>Total</p>
@@ -183,32 +209,19 @@ function App() {
             }}
             className="flex-1"
           />
-
-          {/* move tagged images toggle */}
-          <Toggle
-            text="Move"
-            enabled={!!moveLocation}
-            title={moveLocation}
-            onDisable={() => setMoveLocation(null)}
-            onEnable={async () => {
-              const newMoveLocation = await directoryPicker()
-              if (!newMoveLocation) return
-              setMoveLocation(newMoveLocation)
-            }}
-          />
         </header>
 
-        <main className={'flex-1 flex overflow-hidden px-4 pb-2'}>
+        <main className={'flex-1 flex overflow-hidden px-4 py-1'}>
           {/* Image Viewer & Controller */}
           <MediaViewer
             key={`${medias[currentMediaIndex]}`}
             className={'flex-1'}
             mediaPath={mediaPath}
             mediaType={medias[currentMediaIndex]?.type}
-            mediaMeta={medias[currentMediaIndex] && [
-              `${medias[currentMediaIndex].type}`,
-              `${humanFileSize(medias[currentMediaIndex].size)}`
-            ]}
+            // mediaMeta={medias[currentMediaIndex] && [
+            //   `${medias[currentMediaIndex].type}`,
+            //   `${humanFileSize(medias[currentMediaIndex].size)}`
+            // ]}
             allowNext={currentMediaIndex + 1 < medias.length}
             allowPrev={currentMediaIndex - 1 > -1}
             onNext={() => setCurrentMediaIndex(currentMediaIndex + 1)}
@@ -244,6 +257,64 @@ function App() {
 
           {/* Right Section */}
           <div className="flex flex-col gap-2 w-56 select-none">
+            {/* Action Icons and Media Meta */}
+            <div className='flex p-1 gap-2 justify-between'>
+              {medias[currentMediaIndex] && (
+                <div className='flex gap-1 font-mono text-[0.65rem] text-slate-600 dark:text-slate-400'>
+                  <span>{medias[currentMediaIndex].type}</span>
+                  |
+                  <span>{humanFileSize(medias[currentMediaIndex].size)}</span>
+                </div>
+              )}
+
+              <div className='flex gap-2'>
+                {/* move tagged images: folder icon button */}
+                <div>
+                  <button
+                    type="button"
+                    aria-pressed={!!moveLocation}
+                    title={
+                      moveLocation
+                        ? `Move tagged medias\n\nTarget: ${moveLocation}`
+                        : "Move tagged medias: click to choose destination"
+                    }
+                    onClick={async () => {
+                      if (moveLocation) {
+                        setMoveLocation(null)
+                      } else {
+                        const newMoveLocation = await directoryPicker()
+                        if (!newMoveLocation) return
+                        setMoveLocation(newMoveLocation)
+                      }
+                    }}
+                    className={cn(
+                      "relative",
+                      moveLocation
+                        ? "text-slate-900 dark:text-slate-100 opacity-100 hover:opacity-90"
+                        : [
+                          "text-slate-500 dark:text-slate-500 opacity-50 hover:opacity-70",
+                          // slash overlay
+                          'after:content-[""] after:absolute after:left-0.5 after:right-0.5 after:top-1/2',
+                          "after:h-px after:bg-current after:-rotate-45 after:pointer-events-none",
+                        ].join(" ")
+                    )}
+                  >
+                    <IconFolderShare size={16} />
+                  </button>
+                </div>
+
+                {/* Theme toggle */}
+                <div>
+                  <button
+                    title="Toggle theme"
+                    onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+                  >
+                    {theme === 'dark' ? <IconSun size={16} /> : <IconMoon size={16} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <ProfileList
               profiles={profiles}
               currentProfile={currentProfile}
@@ -264,13 +335,12 @@ function App() {
                 disabled={!currentProfile}
                 className="flex-1"
               />
-              <button onClick={() => setSelectedTags([...new Set(mediaTags)])}>
-                <img
-                  src={resetSvg}
-                  alt="Reset Selected Tags"
-                  title="Reset Selected Tags"
-                  className="w-6"
-                />
+              <button
+                onClick={() => setSelectedTags([...new Set(mediaTags)])}
+                title="Reset Selected Tags"
+                className="p-1.5 rounded-md hover:bg-slate-200/30 dark:hover:bg-slate-700/40 text-slate-900 dark:text-slate-200"
+              >
+                <IconRefresh size={18} />
               </button>
             </div>
 
