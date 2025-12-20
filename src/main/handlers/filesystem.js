@@ -26,6 +26,14 @@ ipcMain.handle('file-write', (event, file, content, { append = false } = {}) => 
   return true
 })
 
+ipcMain.handle('file-delete', (event, file) => {
+  if (fs.existsSync(file) && fs.lstatSync(file).isFile()) {
+    fs.unlinkSync(file)
+    return true
+  }
+  return false
+})
+
 ipcMain.handle('file-move', (event, src, dest, options = {}) => {
   const { withSiblings } = options
   if (

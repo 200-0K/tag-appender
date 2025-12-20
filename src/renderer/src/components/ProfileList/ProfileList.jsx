@@ -1,6 +1,7 @@
 import Swal from 'sweetalert2'
 import { getFileName, getFileWithoutExtension } from '../../../../../utils/path-format'
 import { getProfiles } from '../../pages/App/utils/profiles'
+import { DEFAULT_PROFILE } from '../../pages/App/utils/profile-defaults'
 
 import Button from '../Button'
 import DropdownMenu from '../DropdownMenu'
@@ -28,6 +29,10 @@ export default function ProfileList({ profiles, currentProfile, setProfiles, set
               if (!filename) return 'File name cannot be empty.'
               else if (!(await window.api.createTagFile(filename + '.ta')))
                 return 'Error Creating File: There was an error creating the file. Please choose a different name and try again.'
+              else {
+                // Initialize with default profile structure
+                await window.api.writeJsonFile(filename + '.ta', DEFAULT_PROFILE)
+              }
             }
           })
 

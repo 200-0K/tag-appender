@@ -18,3 +18,18 @@ export function getFileWithoutExtension(filename) {
   if (extIndex < 0) extIndex = undefined;
   return filename.slice(0, extIndex);
 }
+
+export function inLocation(mediaPath, moveLocation, { level = null } = {}) {
+  const norm = s => String(s).replace(/\\/g, "/").replace(/\/+$/g, "").toLowerCase();
+
+  const mp = norm(mediaPath);
+  const ml = norm(moveLocation);
+
+  if (!mp.startsWith(ml.endsWith("/") ? ml : ml + "/")) return false;
+
+  // remove base + "/" then count folders before filename
+  const rest = mp.slice((ml.endsWith("/") ? ml : ml + "/").length);
+  const folders = rest.split("/").slice(0, -1).filter(Boolean).length;
+
+  return level == null ? true : folders === level;
+}

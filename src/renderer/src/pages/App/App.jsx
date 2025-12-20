@@ -12,11 +12,13 @@ import resetSvg from '../../assets/reset.svg'
 import { getTagsFromFile, appendTag, putTagsToFile, moveMedia } from './utils/tags'
 import { getMedias } from './utils/medias'
 import { getProfiles } from './utils/profiles'
+import { createProfileData } from './utils/profile-defaults'
 import { directoryPicker } from '../../utils/pickers'
 import BounceLoader from 'react-spinners/BounceLoader'
 import ExternalScriptButton from '../../components/ExternalScriptButton/ExternalScriptButton'
 import { humanFileSize } from './utils/bytes'
 import { IconCheck } from '@tabler/icons-react'
+import { inLocation } from '../../../../../utils/path-format'
 
 function App() {
   const [loadingPrefs, setLoadingPrefs] = useState(true)
@@ -36,8 +38,26 @@ function App() {
   // init
   useEffect(() => {
     const init = async () => {
-      const { dir, currentMediaPath, currentProfile, moveLocation, autotagScript } =
+      let { dir, currentMediaPath, currentProfile, moveLocation, autotagScript } =
         await window.api.getPreference()
+
+      // Migration logic: convert CSV .ta to JSON .ta
+      const taProfiles = (await window.api.profileScanner()) ?? []
+      for (const taProfile of taProfiles) {
+        const taPath = taProfile.path
+        try {
+          const data = await window.api.readJsonFile(taPath)
+          if (!data || !data.tags) throw new Error('Not JSON')
+        } catch (e) {
+          // Not JSON, convert CSV to JSON
+          const taTags = await window.api.readTagFile(taPath)
+          if (taTags) {
+            const profileData = createProfileData(taTags.filter(Boolean))
+            await window.api.writeJsonFile(taPath, profileData)
+          }
+        }
+      }
+
       const profiles = (await getProfiles()) ?? []
       setDir(dir)
       setCurrentMediaIndex(currentMediaIndex)
@@ -85,6 +105,7 @@ function App() {
     getTagsFromFile(currentProfile)
       .then((newTags) => setTags(newTags ?? []))
       .catch(console.error)
+    setSelectedTags([])
   }, [currentProfile])
 
   // update selected tags
@@ -93,7 +114,9 @@ function App() {
     getTagsFromFile(medias[currentMediaIndex].path, { tagFileExt: 'txt' }).then((mediaTags) => {
       mediaTags = mediaTags ?? []
       setMediaTags(mediaTags)
-      const newSelectedTags = [...new Set([...selectedTags.filter((tag) => tags.includes(tag)), ...mediaTags])]
+      const newSelectedTags = [
+        ...new Set([...selectedTags.filter((tag) => tags.some((t) => t.name === tag)), ...mediaTags])
+      ]
       setSelectedTags(newSelectedTags)
       setLoadingMediaTags(false)
     })
@@ -105,8 +128,10 @@ function App() {
   }, [currentMediaIndex, medias])
 
   const handleReorder = (reorderedItems) => {
-    const reorderedTagValues = reorderedItems.map((item) => item.value ?? item)
-    const newProfileTags = reorderedTagValues.filter((tag) => tags.includes(tag))
+    const reorderedTagNames = reorderedItems.map((item) => item.value ?? item)
+    const newProfileTags = reorderedTagNames
+      .map((name) => tags.find((t) => t.name === name))
+      .filter(Boolean)
 
     setTags(newProfileTags)
     putTagsToFile(currentProfile, newProfileTags).catch(console.error)
@@ -180,7 +205,7 @@ function App() {
               }
             }}
             statusHtml={
-              mediaPath?.startsWith(moveLocation) ? <IconCheck color="green" /> : null
+              inLocation(mediaPath, moveLocation, {level: 0}) ? <IconCheck color="green" /> : null
             }
           />
 
@@ -199,7 +224,7 @@ function App() {
                 placeholder="Tag"
                 onValueEnter={async (newTag, e) => {
                   if (await appendTag(currentProfile, newTag)) {
-                    setTags([...tags, newTag])
+                    setTags([...tags, { name: newTag }])
                     e.target.value = ''
                   }
                 }}
@@ -220,10 +245,10 @@ function App() {
             <SelectableList
               items={[
                 ...tags.map((tag) =>
-                  mediaTags.includes(tag) ? { value: tag, color: 'green' } : tag
+                  mediaTags.includes(tag.name) ? { value: tag.name, color: 'green' } : { value: tag.name }
                 ),
                 ...mediaTags
-                  .filter((tag) => !tags.includes(tag))
+                  .filter((tag) => !tags.some((t) => t.name === tag))
                   .map((tag) => ({ value: tag, color: 'yellow' }))
               ]}
               selectedItems={selectedTags}
