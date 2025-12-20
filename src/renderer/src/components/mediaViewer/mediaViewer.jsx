@@ -16,6 +16,9 @@ function MediaViewer({
   onPrev,
   buttonText,
   onButtonClick,
+  undoButtonText,
+  onUndoClick,
+  canUndo = false,
   statusHtml = null,
 }) {
   const playerId = 'player'; // resolveMediaId(mediaPath)
@@ -54,12 +57,23 @@ function MediaViewer({
       <div className="flex flex-col gap-1">
         <div className="flex gap-2 items-center">
           {statusHtml}
+          {canUndo && (
+              <Button
+                title={undoButtonText}
+                className="uppercase py-2"
+                disabled={disabled}
+                onClick={() => onUndoClick?.(mediaPath)}
+              >
+                {undoButtonText}
+              </Button>
+            )}
 
           {/* Image Name */}
           <InputText
             className="flex-1 py-4"
             value={mediaName || 'None'}
             disabled={!isThereMedia}
+            title={mediaPath}
             readOnly
           />
 

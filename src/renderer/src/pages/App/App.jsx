@@ -18,7 +18,7 @@ import BounceLoader from 'react-spinners/BounceLoader'
 import ExternalScriptButton from '../../components/ExternalScriptButton/ExternalScriptButton'
 import { humanFileSize } from './utils/bytes'
 import { IconCheck } from '@tabler/icons-react'
-import { inLocation } from '../../../../../utils/path-format'
+import { inLocation, getFileParentPath } from '../../../../../utils/path-format'
 
 function App() {
   const [loadingPrefs, setLoadingPrefs] = useState(true)
@@ -34,6 +34,7 @@ function App() {
   const [tags, setTags] = useState([])
   const [mediaTags, setMediaTags] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
+  const [movedHistory, setMovedHistory] = useState({}) // { newPath: originalPath }
 
   // init
   useEffect(() => {
@@ -127,6 +128,25 @@ function App() {
     loadMediaTags()
   }, [currentMediaIndex, medias])
 
+  const undoMove = async (currentPath) => {
+    const originalPath = movedHistory[currentPath]
+    if (!originalPath) return
+
+    const movedBackPath = await moveMedia(currentPath, getFileParentPath(originalPath))
+    if (!movedBackPath) return
+
+    setMedias(
+      medias.map((media) =>
+        media.path === currentPath ? { ...media, path: movedBackPath } : media
+      )
+    )
+    setMovedHistory((prev) => {
+      const newHistory = { ...prev }
+      delete newHistory[currentPath]
+      return newHistory
+    })
+  }
+
   const handleReorder = (reorderedItems) => {
     const reorderedTagNames = reorderedItems.map((item) => item.value ?? item)
     const newProfileTags = reorderedTagNames
@@ -200,12 +220,25 @@ function App() {
                 await putTagsToFile(mediaPath, selectedTags.sort(), { tagFileExt: 'txt' })
 
               if (moveLocation) {
+                const originalPath = mediaPath
                 const newMediaPath = await moveMedia(mediaPath, moveLocation)
-                setMedias(medias.map((media) => (media.path === mediaPath ? {...media, path: newMediaPath} : media)))
+                if (!newMediaPath) return
+
+                if (newMediaPath !== originalPath) {
+                  setMovedHistory((prev) => ({ ...prev, [newMediaPath]: originalPath }))
+                }
+                setMedias(
+                  medias.map((media) =>
+                    media.path === mediaPath ? { ...media, path: newMediaPath } : media
+                  )
+                )
               }
             }}
+            undoButtonText="Undo"
+            onUndoClick={() => undoMove(mediaPath)}
+            canUndo={inLocation(mediaPath, moveLocation, { level: 0 }) && !!movedHistory[mediaPath]}
             statusHtml={
-              inLocation(mediaPath, moveLocation, {level: 0}) ? <IconCheck color="green" /> : null
+              inLocation(mediaPath, moveLocation, { level: 0 }) ? <IconCheck color="green" /> : null
             }
           />
 
