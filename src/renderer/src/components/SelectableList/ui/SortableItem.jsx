@@ -30,9 +30,9 @@ export function SortableItem({ id, item, isSelected, onSelect, idx }) {
         'bg-slate-800 border-slate-700',
         // selected variants applied to whole item
         {
-          'bg-emerald-500 text-white border-emerald-500 shadow-md': isSelected && item.color === 'green',
-          'bg-amber-500 text-slate-900 border-amber-500 shadow-md': isSelected && item.color === 'yellow',
-          'bg-indigo-600 text-white border-indigo-600 shadow-md': isSelected && item.color !== 'green' && item.color !== 'yellow'
+          'bg-emerald-500 text-white shadow-md': isSelected && item.color === 'green',
+          'bg-amber-500 text-slate-900 shadow-md': isSelected && item.color === 'yellow',
+          'bg-indigo-500 dark:bg-indigo-600 text-white shadow-md': isSelected && item.color !== 'green' && item.color !== 'yellow'
         }
       )}
     >

@@ -4,7 +4,6 @@ import { cn } from '../../pages/App/utils/cn'
 function Button({
   children,
   className,
-  dark = false,
   size = 'sm',
   type,
   ...props
@@ -24,9 +23,7 @@ function Button({
         'disabled:opacity-50 disabled:pointer-events-none',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40',
         sizes[size] ?? sizes.sm,
-        dark
-          ? 'bg-indigo-500 text-white hover:bg-indigo-400 active:bg-indigo-600'
-          : 'bg-indigo-600 text-white hover:bg-indigo-500 active:bg-indigo-700',
+        'bg-indigo-600 text-white active:bg-indigo-700',
         className
       )}
       {...props}
