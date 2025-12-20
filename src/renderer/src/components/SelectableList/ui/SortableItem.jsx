@@ -6,7 +6,10 @@ import { IconGripVertical } from '@tabler/icons-react'
 
 export function SortableItem({ id, item, isSelected, onSelect, idx }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: id
+    id: id,
+    data: {
+      type: 'tag'
+    }
   })
 
   const style = {
@@ -46,7 +49,7 @@ export function SortableItem({ id, item, isSelected, onSelect, idx }) {
       <div className="flex-1 min-w-0">
         <input
           className="hidden"
-          id={`item-${idx}`}
+          id={`checkbox-${id}`}
           type="checkbox"
           value={item.value ?? item}
           checked={isSelected}
@@ -60,11 +63,11 @@ export function SortableItem({ id, item, isSelected, onSelect, idx }) {
         />
         <label
           className={cn('cursor-pointer block py-2 px-3 break-words truncate', {
-              // label text color: dark in light-mode, light in dark-mode when not selected
-              'text-slate-900 dark:text-slate-200': !isSelected,
+            // label text color: dark in light-mode, light in dark-mode when not selected
+            'text-slate-900 dark:text-slate-200': !isSelected,
             'text-white': isSelected
           })}
-          htmlFor={`item-${idx}`}
+          htmlFor={`checkbox-${id}`}
         >
           {item.value ?? item}
         </label>

@@ -33,6 +33,7 @@ function App() {
   const [medias, setMedias] = useState([])
   const [profiles, setProfiles] = useState([])
   const [tags, setTags] = useState([])
+  const [groups, setGroups] = useState([])
   const [mediaTags, setMediaTags] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [movedHistory, setMovedHistory] = useState({}) // { newPath: originalPath }
@@ -124,7 +125,15 @@ function App() {
   useEffect(() => {
     if (!currentProfile) return
     getTagsFromFile(currentProfile)
-      .then((newTags) => setTags(newTags ?? []))
+      .then((data) => {
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+          setTags(data.tags ?? [])
+          setGroups(data.groups ?? [])
+        } else {
+          setTags(data ?? [])
+          setGroups([])
+        }
+      })
       .catch(console.error)
     setSelectedTags([])
     if (medias[currentMediaIndex]) loadMediaTags()
@@ -168,14 +177,10 @@ function App() {
     })
   }
 
-  const handleReorder = (reorderedItems) => {
-    const reorderedTagNames = reorderedItems.map((item) => item.value ?? item)
-    const newProfileTags = reorderedTagNames
-      .map((name) => tags.find((t) => t.name === name))
-      .filter(Boolean)
-
-    setTags(newProfileTags)
-    putTagsToFile(currentProfile, newProfileTags).catch(console.error)
+  const handleReorder = (newTags, newGroups) => {
+    setTags(newTags)
+    if (newGroups) setGroups(newGroups)
+    putTagsToFile(currentProfile, newTags, { groups: newGroups ?? groups }).catch(console.error)
   }
 
   const mediaPath = currentMediaPath
@@ -218,10 +223,11 @@ function App() {
             className={'flex-1'}
             mediaPath={mediaPath}
             mediaType={medias[currentMediaIndex]?.type}
-            // mediaMeta={medias[currentMediaIndex] && [
-            //   `${medias[currentMediaIndex].type}`,
-            //   `${humanFileSize(medias[currentMediaIndex].size)}`
-            // ]}
+            mediaMeta={medias[currentMediaIndex] && [
+              `${medias[currentMediaIndex].type}`,
+              `${humanFileSize(medias[currentMediaIndex].size)}`,
+              // `${medias[currentMediaIndex].dimensions?.width}x${medias[currentMediaIndex].dimensions?.height}` //TODO: fix dimension reading
+            ]}
             allowNext={currentMediaIndex + 1 < medias.length}
             allowPrev={currentMediaIndex - 1 > -1}
             onNext={() => setCurrentMediaIndex(currentMediaIndex + 1)}
@@ -259,13 +265,7 @@ function App() {
           <div className="flex flex-col gap-2 w-56 select-none">
             {/* Action Icons and Media Meta */}
             <div className='flex p-1 gap-2 justify-between'>
-              {medias[currentMediaIndex] && (
-                <div className='flex gap-1 font-mono text-[0.65rem] text-slate-600 dark:text-slate-400'>
-                  <span>{medias[currentMediaIndex].type}</span>
-                  |
-                  <span>{humanFileSize(medias[currentMediaIndex].size)}</span>
-                </div>
-              )}
+              <div></div>
 
               <div className='flex gap-2'>
                 {/* move tagged images: folder icon button */}
@@ -315,24 +315,12 @@ function App() {
               </div>
             </div>
 
-            <ProfileList
-              profiles={profiles}
-              currentProfile={currentProfile}
-              setProfiles={setProfiles}
-              setCurrentProfile={setCurrentProfile}
-            />
-
-            {/* Tag Input */}
-            <div className="flex gap-2">
-              <InputText
-                placeholder="Tag"
-                onValueEnter={async (newTag, e) => {
-                  if (await appendTag(currentProfile, newTag)) {
-                    setTags([...tags, { name: newTag }])
-                    e.target.value = ''
-                  }
-                }}
-                disabled={!currentProfile}
+            <div className='flex'>
+              <ProfileList
+                profiles={profiles}
+                currentProfile={currentProfile}
+                setProfiles={setProfiles}
+                setCurrentProfile={setCurrentProfile}
                 className="flex-1"
               />
               <button
@@ -344,16 +332,12 @@ function App() {
               </button>
             </div>
 
+
             {/* Tag List */}
             <SelectableList
-              items={[
-                ...tags.map((tag) =>
-                  mediaTags.includes(tag.name) ? { value: tag.name, color: 'green' } : { value: tag.name }
-                ),
-                ...mediaTags
-                  .filter((tag) => !tags.some((t) => t.name === tag))
-                  .map((tag) => ({ value: tag, color: 'yellow' }))
-              ]}
+              tags={tags}
+              groups={groups}
+              mediaTags={mediaTags}
               selectedItems={selectedTags}
               onSelect={(tag, { checked, ctrlKey }) =>
                 setSelectedTags((tags) => {
@@ -364,11 +348,43 @@ function App() {
                 })
               }
               onReorder={handleReorder}
-              className="flex-1"
+              className="flex-1 p-1"
             />
 
             <div className="self-center">
               <BounceLoader color="#4b5563" loading={loadingMediaTags} size={30} />
+            </div>
+
+            {/* Tag Input */}
+            <div className="flex gap-2">
+              <InputText
+                placeholder="New Tag"
+                onValueEnter={async (newTag, e) => {
+                  if (await appendTag(currentProfile, newTag)) {
+                    setTags([...tags, { name: newTag }])
+                    e.target.value = ''
+                  }
+                }}
+                disabled={!currentProfile}
+                className="flex-1"
+              />
+            </div>
+
+            {/* Group Input */}
+            <div className="flex gap-2">
+              <InputText
+                placeholder="New Group"
+                onValueEnter={(newGroup, e) => {
+                  if (newGroup && !groups.find((g) => g.name === newGroup)) {
+                    const newGroups = [...groups, { id: Date.now().toString(), name: newGroup }]
+                    setGroups(newGroups)
+                    putTagsToFile(currentProfile, tags, { groups: newGroups }).catch(console.error)
+                    e.target.value = ''
+                  }
+                }}
+                disabled={!currentProfile}
+                className="flex-1"
+              />
             </div>
 
             <ExternalScriptButton
