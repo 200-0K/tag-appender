@@ -239,14 +239,25 @@ function App() {
         <main className={'flex-1 flex overflow-hidden px-4 py-1'}>
           {/* Image Viewer & Controller */}
           <MediaViewer
-            key={`${medias[currentMediaIndex]}`}
+            key={medias[currentMediaIndex]?.path || 'none'}
             className={'flex-1'}
             mediaPath={mediaPath}
             mediaType={medias[currentMediaIndex]?.type}
             mediaMeta={
               medias[currentMediaIndex] && [
                 `${medias[currentMediaIndex].type}`,
-                `${humanFileSize(medias[currentMediaIndex].size)}`,
+                <span
+                  key="size"
+                  className={cn(
+                    medias[currentMediaIndex].size < 1024 * 1024
+                      ? 'text-green-500'
+                      : medias[currentMediaIndex].size < 10 * 1024 * 1024
+                        ? 'text-yellow-500'
+                        : 'text-red-500'
+                  )}
+                >
+                  {humanFileSize(medias[currentMediaIndex].size)}
+                </span>,
                 medias[currentMediaIndex].dimensions
                   ? `${medias[currentMediaIndex].dimensions.width}x${medias[currentMediaIndex].dimensions.height}`
                   : '...'

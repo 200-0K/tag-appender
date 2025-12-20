@@ -148,7 +148,7 @@ function MediaViewer({
         </div>
 
         {/* Media Meta */}
-        <div className="flex font-mono gap-4 text-[.6rem] px-2 opacity-70">
+        <div className="flex gap-4 text-[.7rem] font-mono font-bold tracking-wider px-2 opacity-70">
           {mediaMeta.map((meta, idx) => (
             <div key={idx}>{meta}</div>
           ))}
