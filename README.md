@@ -11,6 +11,7 @@ Tag Appender is a cross-platform application with a user-friendly graphical inte
 - **Tags Reordering**: Drag and drop tags and groups to reorder them.
 - **Move Tagged Media**: Automatically move files to a specific directory after tagging.
 - **Undo Move**: Quickly undo a file move if you made a mistake.
+- **Open Externally**: Open the current media file in your OS's default viewer using the eye icon.
 - **Dark Mode**: Modern UI with dark theme support.
 - **Auto Tagging**: Execute custom commands for automatic tagging.
 
@@ -18,6 +19,9 @@ Tag Appender is a cross-platform application with a user-friendly graphical inte
 ### Selecting Tags
 - **One Tag**: To add one tag, just left click the tag from the tag list.
 - **Multiple Tags**: To add multiple tags, hold down the control key while clicking the tags to select them.
+
+### Opening Media Externally
+- Click the **eye icon** next to the file name input to open the current image or video in your system's default media viewer.
 
 ### Organizing Tags
 - **Reordering**: You can drag and drop tags within a group or move them between groups. You can also reorder the groups themselves.
