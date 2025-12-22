@@ -25,7 +25,8 @@ const api = {
   getPreference: () => ipcRenderer.invoke('preference-store-get'),
   updatePreference: (prefs) => ipcRenderer.invoke('preference-store-update', prefs),
 
-  executeScript: (script) => ipcRenderer.invoke('execute-script', script)
+  executeScript: (script) => ipcRenderer.invoke('execute-script', script),
+  openFile: (filepath) => ipcRenderer.invoke('file-open', filepath)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

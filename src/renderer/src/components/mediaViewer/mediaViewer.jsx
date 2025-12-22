@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { getFileName } from '../../../../../utils/path-format'
+import { IconEye } from '@tabler/icons-react'
 import Button from '../Button'
 import InputText from '../InputText'
 import VideoJS, { getPlayer } from '../Videojs'
@@ -113,6 +114,16 @@ function MediaViewer({
             title={mediaPath}
             readOnly
           />
+
+          <Button
+            title="Open externally"
+            disabled={!isThereMedia}
+            onClick={() => window.api.openFile(mediaPath)}
+            className="px-2"
+            variant='secondary'
+          >
+            <IconEye size={18} />
+          </Button>
 
           {/* Image Controller */}
           <div className="flex gap-2 text-slate-900 dark:text-slate-200 select-none">

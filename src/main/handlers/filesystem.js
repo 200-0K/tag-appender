@@ -1,6 +1,10 @@
-import { ipcMain } from 'electron'
+import { ipcMain, shell } from 'electron'
 import fs from 'fs'
 import path from 'path'
+
+ipcMain.handle('file-open', (event, file) => {
+  return shell.openPath(file)
+})
 
 ipcMain.handle('file-create', (event, file) => {
   try {
