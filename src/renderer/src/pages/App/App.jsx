@@ -139,7 +139,24 @@ function App() {
 
       const profiles = (await getProfiles()) ?? []
       setProfiles(profiles)
-      setCurrentProfile(profiles.find((p) => p === workspace.currentProfile) ?? profiles[0])
+      const newProfile = profiles.find((p) => p === workspace.currentProfile) ?? profiles[0]
+      setCurrentProfile(newProfile)
+
+      // Manually load tags for the new profile
+      if (newProfile) {
+        try {
+          const data = await getTagsFromFile(newProfile)
+          if (data && typeof data === 'object' && !Array.isArray(data)) {
+            setTags(data.tags ?? [])
+            setGroups(data.groups ?? [])
+          } else {
+            setTags(data ?? [])
+            setGroups([])
+          }
+        } catch (error) {
+          console.error('Error loading tags:', error)
+        }
+      }
     }
 
     // Small delay for smooth transition
