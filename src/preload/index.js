@@ -25,6 +25,11 @@ const api = {
   getPreference: () => ipcRenderer.invoke('preference-store-get'),
   updatePreference: (prefs) => ipcRenderer.invoke('preference-store-update', prefs),
 
+  getWorkspaces: () => ipcRenderer.invoke('workspaces-get'),
+  createWorkspace: (name) => ipcRenderer.invoke('workspace-create', name),
+  switchWorkspace: (id) => ipcRenderer.invoke('workspace-switch', id),
+  deleteWorkspace: (id) => ipcRenderer.invoke('workspace-delete', id),
+
   executeScript: (script) => ipcRenderer.invoke('execute-script', script),
   openFile: (filepath) => ipcRenderer.invoke('file-open', filepath)
 }

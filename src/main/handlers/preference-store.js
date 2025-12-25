@@ -13,3 +13,8 @@ const preferenceStore = new PreferenceStore({
 
 ipcMain.handle("preference-store-get", () => preferenceStore.prefs);
 ipcMain.handle("preference-store-update", (events, prefs) => !!preferenceStore.updatePrefs(prefs));
+
+ipcMain.handle("workspaces-get", () => preferenceStore.getWorkspaces());
+ipcMain.handle("workspace-create", (event, name) => preferenceStore.createWorkspace(name));
+ipcMain.handle("workspace-switch", (event, id) => preferenceStore.switchWorkspace(id));
+ipcMain.handle("workspace-delete", (event, id) => preferenceStore.deleteWorkspace(id));

@@ -9,6 +9,17 @@
 
 html, body, #root {
 	font-family: var(--ui-font-sans);
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	@apply bg-slate-50 text-slate-900;
+}
+
+html.dark body {
+	@apply bg-slate-950 text-slate-200;
 }
 
 /* Optional: small scrollbar style for dark theme */
