@@ -6,7 +6,7 @@ function InputText({ className, onValueEnter, value, title, ...props }) {
       className={[
         'bg-white/5 dark:bg-slate-800 border border-slate-700 placeholder-slate-400',
         'text-slate-900 dark:text-slate-100',
-        'px-4 rounded-lg py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition',
+        'px-2 rounded-lg py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition',
         className
       ].join(' ')}
       type="text"

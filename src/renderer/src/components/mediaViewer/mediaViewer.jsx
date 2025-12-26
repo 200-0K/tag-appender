@@ -128,10 +128,10 @@ function MediaViewer({
           {/* Image Controller */}
           <div className="flex gap-2 text-slate-900 dark:text-slate-200 select-none">
             <Button
-              title="Previous"
+              title="Previous (Ctrl+Click to move 5)"
               className="py-2"
               disabled={disabled || !allowPrev}
-              onClick={onPrev}
+              onClick={(e) => onPrev?.(e)}
             >
               &lt;
             </Button>
@@ -148,10 +148,10 @@ function MediaViewer({
               {buttonText}
             </Button>
             <Button
-              title="Next"
+              title="Next (Ctrl+Click to move 5)"
               className="py-2"
               disabled={disabled || !allowNext}
-              onClick={onNext}
+              onClick={(e) => onNext?.(e)}
             >
               &gt;
             </Button>

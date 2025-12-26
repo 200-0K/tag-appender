@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Swal from 'sweetalert2'
 
 import FileBrowser from '../../components/FileBrowser'
@@ -42,6 +42,47 @@ function App() {
   const [mediaTags, setMediaTags] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [movedHistory, setMovedHistory] = useState({}) // { newPath: originalPath }
+
+  // navigation debounce accumulator
+  const navRef = useRef({ pending: 0, timer: null })
+  const DEBOUNCE_DELAY = 150 // ms
+
+  const clampIndex = (i) => {
+    if (!medias || medias.length === 0) return null
+    return Math.max(0, Math.min(medias.length - 1, i))
+  }
+
+  const flushPendingNav = (extra = 0) => {
+    const pending = (navRef.current.pending || 0) + (extra || 0)
+    navRef.current.pending = 0
+    if (navRef.current.timer) {
+      clearTimeout(navRef.current.timer)
+      navRef.current.timer = null
+    }
+    if (pending === 0) return
+    setCurrentMediaIndex((idx) => {
+      if (idx === null) return idx
+      const newIdx = clampIndex(idx + pending)
+      return newIdx
+    })
+  }
+
+  const handleNav = (delta, e) => {
+    // If `e` is undefined, treat as immediate (used by Tag button behaviour)
+    const isImmediate = typeof e === 'undefined'
+    const step = e?.ctrlKey ? delta * 5 : delta
+    if (isImmediate) {
+      flushPendingNav(step)
+      return
+    }
+
+    // accumulate and debounce
+    navRef.current.pending = (navRef.current.pending || 0) + step
+    if (navRef.current.timer) clearTimeout(navRef.current.timer)
+    navRef.current.timer = setTimeout(() => {
+      flushPendingNav()
+    }, DEBOUNCE_DELAY)
+  }
 
   // Theme state: default to dark; persisted in localStorage
   const [theme, setTheme] = useState(() => {
@@ -370,8 +411,8 @@ function App() {
               }
               allowNext={currentMediaIndex + 1 < medias.length}
               allowPrev={currentMediaIndex - 1 > -1}
-              onNext={() => setCurrentMediaIndex(currentMediaIndex + 1)}
-              onPrev={() => setCurrentMediaIndex(currentMediaIndex - 1)}
+              onNext={(e) => handleNav(1, e)}
+              onPrev={(e) => handleNav(-1, e)}
               disabled={loadingMediaTags}
               buttonText="Tag"
               onMediaLoaded={handleMediaLoaded}
