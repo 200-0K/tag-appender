@@ -11,12 +11,14 @@ function createWindow() {
   const files = glob.sync(path.join(__dirname, './handlers/**/*.js'))
   files.forEach((file) => require(file))
 
+  console.log( `${app.getName()} - ${app.getVersion()}`);
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     minWidth: 640,
     minHeight: 440,
     show: false,
     autoHideMenuBar: true,
+    title: `${app.getName()} - ${app.getVersion()}`,
     ...(process.platform === 'linux'
       ? {
           icon: path.join(__dirname, '../../build/icon.png')
@@ -35,6 +37,14 @@ function createWindow() {
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
+  })
+
+  mainWindow.webContents.on('did-finish-load', () => {
+    try {
+      mainWindow.setTitle(`${app.getName()} - ${app.getVersion()}`)
+    } catch (e) {
+      console.error(e)
+    }
   })
 
   // HMR for renderer base on electron-vite cli.
