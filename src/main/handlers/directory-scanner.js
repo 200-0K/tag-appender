@@ -25,12 +25,17 @@ ipcMain.handle(
     if (!absolute) files = files.map((file) => path.basename(file))
     if (filenameOnly) files = files.map((file) => path.parse(file).name)
     files = files.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
-    files = files.map((file) => ({
-      path: file,
-      pathMeta: JSON.parse(JSON.stringify(path.parse(file))),
-      type: mime.getType(file),
-      size: fs.statSync(file).size
-    }))
+    files = files.map((file) => {
+      const stat = fs.statSync(file)
+      return {
+        path: file,
+        pathMeta: JSON.parse(JSON.stringify(path.parse(file))),
+        type: mime.getType(file),
+        size: stat.size,
+        created: stat.birthtime,
+        modified: stat.mtime
+      }
+    })
 
     return files
   }

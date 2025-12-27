@@ -362,6 +362,12 @@ function App() {
               mediaType={medias[currentMediaIndex]?.type}
               mediaMeta={
                 medias[currentMediaIndex] && [
+                  <span key="created" title={new Date(medias[currentMediaIndex].created).toLocaleString()}>
+                    {`C: ${new Date(medias[currentMediaIndex].created).toLocaleDateString()}`}
+                  </span>,
+                  <span key="modified" title={new Date(medias[currentMediaIndex].modified).toLocaleString()}>
+                    {`M: ${new Date(medias[currentMediaIndex].modified).toLocaleDateString()}`}
+                  </span>,
                   `${medias[currentMediaIndex].type}`,
                   <span
                     key="size"
