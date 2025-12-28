@@ -10,8 +10,6 @@ import Toggle from '../../components/Toggle'
 import ProfileList from '../../components/ProfileList/ProfileList'
 import WorkspaceSelector from '../../components/WorkspaceSelector'
 
-// reset icon replaced by Tabler icon for theme-aware rendering
-
 import { getTagsFromFile, appendTag, putTagsToFile, moveMedia } from './utils/tags'
 import { getMedias } from './utils/medias'
 import { getProfiles } from './utils/profiles'
@@ -22,6 +20,10 @@ import ExternalScriptButton from '../../components/ExternalScriptButton/External
 import { humanFileSize } from './utils/bytes'
 import { IconCheck, IconSun, IconMoon, IconRefresh, IconFolder, IconFolderSymlink, IconArrowRight, IconArrowLeft, IconFolderBolt, IconFolderShare } from '@tabler/icons-react'
 import { inLocation, getFileParentPath } from '../../../../../utils/path-format'
+
+// ✅ PREFETCH: new imports
+import { imageCache } from '../../media/imageCache'
+import { imagePrefetcher } from '../../media/imagePrefetcher'
 
 function App() {
   const [loadingPrefs, setLoadingPrefs] = useState(true)
@@ -42,6 +44,7 @@ function App() {
   const [mediaTags, setMediaTags] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [movedHistory, setMovedHistory] = useState({}) // { newPath: originalPath }
+  const [navDir, setNavDir] = useState(1)
 
   const clampIndex = (i) => {
     if (!medias || medias.length === 0) return null
@@ -49,6 +52,7 @@ function App() {
   }
 
   const handleNav = (delta, e) => {
+    setNavDir(delta > 0 ? 1 : -1)
     const step = e?.ctrlKey ? delta * 5 : delta
     setCurrentMediaIndex((idx) => {
       if (idx === null) return idx
@@ -56,7 +60,6 @@ function App() {
     })
   }
 
-  // Theme state: default to dark; persisted in localStorage
   const [theme, setTheme] = useState(() => {
     try {
       return localStorage.getItem('theme') ?? 'dark'
@@ -98,7 +101,6 @@ function App() {
       let { dir, currentMediaPath, currentProfile, moveLocation, autotagScript } =
         await window.api.getPreference()
 
-      // Migration logic: convert CSV .ta to JSON .ta
       const taProfiles = (await window.api.profileScanner()) ?? []
       for (const taProfile of taProfiles) {
         const taPath = taProfile.path
@@ -106,7 +108,6 @@ function App() {
           const data = await window.api.readJsonFile(taPath)
           if (!data || !data.tags) throw new Error('Not JSON')
         } catch (e) {
-          // Not JSON, convert CSV to JSON
           const taTags = await window.api.readTagFile(taPath)
           if (taTags) {
             const profileData = createProfileData(taTags.filter(Boolean))
@@ -132,6 +133,10 @@ function App() {
     setSwitchingWorkspace(true)
     setLoadingPrefs(true)
 
+    // ✅ PREFETCH: clear cache + abort prefetch on workspace switch
+    imagePrefetcher.clear()
+    imageCache.clear()
+
     // Clear current state to avoid stale data during transition
     setMedias([])
     setCurrentMediaIndex(null)
@@ -155,28 +160,30 @@ function App() {
       const newProfile = profiles.find((p) => p === workspace.currentProfile) ?? profiles[0]
       setCurrentProfile(newProfile)
 
-      // Manually load tags for the new profile
       if (newProfile) {
         try {
-          const data = await getTagsFromFile(newProfile)
-          if (data && typeof data === 'object' && !Array.isArray(data)) {
-            setTags(data.tags ?? [])
-            setGroups(data.groups ?? [])
-          } else {
-            setTags(data ?? [])
-            setGroups([])
-          }
+          const data = await getActionableTagsFromProfile(newProfile)
+          setTags(data.tags)
+          setGroups(data.groups)
         } catch (error) {
           console.error('Error loading tags:', error)
         }
       }
     }
 
-    // Small delay for smooth transition
     setTimeout(() => {
       setLoadingPrefs(false)
       setSwitchingWorkspace(false)
     }, 300)
+  }
+
+  // small helper (keeps your existing behavior)
+  async function getActionableTagsFromProfile(profilePath) {
+    const data = await getTagsFromFile(profilePath)
+    if (data && typeof data === 'object' && !Array.isArray(data)) {
+      return { tags: data.tags ?? [], groups: data.groups ?? [] }
+    }
+    return { tags: data ?? [], groups: [] }
   }
 
   const handleWorkspaceCreate = async (name) => {
@@ -199,7 +206,7 @@ function App() {
 
   // save preferences
   useEffect(() => {
-    if (loadingPrefs || switchingWorkspace) return // to avoid overwriting preference file with default values
+    if (loadingPrefs || switchingWorkspace) return
     window.api
       .updatePreference({ dir, currentMediaPath, currentProfile, moveLocation, autotagScript })
       .catch(console.error)
@@ -213,15 +220,18 @@ function App() {
         if (resetIndex) index = 0
         if (newMedias.length > 0) {
           if (index == -1) index = 0
-        } else index = null // there are no images
+        } else index = null
         setCurrentMediaIndex(index)
-
         setMedias(newMedias ?? [])
       })
       .catch(console.error)
   }
+
   useEffect(() => {
     if (!dir) return
+    // ✅ PREFETCH: clear cache + abort when directory changes
+    imagePrefetcher.clear()
+    imageCache.clear()
     loadDir(dir)
   }, [dir])
 
@@ -256,10 +266,33 @@ function App() {
       setLoadingMediaTags(false)
     })
   }
+
   useEffect(() => {
     setCurrentMediaPath(medias[currentMediaIndex]?.path)
     if (!medias[currentMediaIndex]) return
     loadMediaTags()
+  }, [currentMediaIndex, medias])
+
+  // ✅ PREFETCH: preload neighbors whenever index changes
+  useEffect(() => {
+    if (currentMediaIndex == null) return
+    if (!medias || medias.length === 0) return
+    const cur = medias[currentMediaIndex]
+    if (cur?.path) imageCache.touch(cur.path)
+
+    imagePrefetcher.prefetchAround({
+      medias,
+      index: currentMediaIndex,
+      radius: 6,
+      skipAboveBytes: 250 * 1024 * 1024
+    })
+
+    const extra = []
+    for (let i = 1; i <= 12; i++) {
+      const m = medias[currentMediaIndex + navDir * i]
+      if (m?.path && (m.type || '').toLowerCase().startsWith('image')) extra.push(m.path)
+    }
+    imagePrefetcher.prefetchPaths(extra)
   }, [currentMediaIndex, medias])
 
   const undoMove = async (currentPath) => {
@@ -269,16 +302,26 @@ function App() {
     const movedBackPath = await moveMedia(currentPath, getFileParentPath(originalPath))
     if (!movedBackPath) return
 
-    setMedias(
-      medias.map((media) =>
-        media.path === currentPath ? { ...media, path: movedBackPath } : media
-      )
+    setMedias((prev) =>
+      prev.map((m) => (m.path === currentPath ? { ...m, path: movedBackPath } : m))
     )
     setMovedHistory((prev) => {
       const newHistory = { ...prev }
       delete newHistory[currentPath]
       return newHistory
     })
+
+    // ✅ Keep blob valid through undo (and avoid emit-race)
+    if (imageCache.hasDecoded(currentPath)) {
+      imageCache.rename(currentPath, movedBackPath, { emitNow: false })
+    } else {
+      imageCache.delete(currentPath)
+    }
+
+    // Optional cleanup: only delete the "other" key if it's different
+    if (originalPath && originalPath !== movedBackPath) {
+      imageCache.delete(originalPath)
+    }
   }
 
   const handleReorder = (newTags, newGroups) => {
@@ -315,23 +358,21 @@ function App() {
         theme === 'dark' ? 'bg-surface text-slate-200' : 'bg-slate-50 text-slate-900'
       )}
     >
-      {/* Workspace Switch / Initial Load Overlay */}
       <div
         className={cn(
-          "absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity duration-300 pointer-events-none opacity-0",
-          (switchingWorkspace || loadingPrefs) && "opacity-100 pointer-events-auto"
+          'absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity duration-300 pointer-events-none opacity-0',
+          (switchingWorkspace || loadingPrefs) && 'opacity-100 pointer-events-auto'
         )}
       >
         <BounceLoader color="#3b82f6" size={60} />
         <p className="mt-4 text-lg font-medium text-white">
-          {switchingWorkspace ? "Switching Workspace..." : "Loading..."}
+          {switchingWorkspace ? 'Switching Workspace...' : 'Loading...'}
         </p>
       </div>
 
       {!loadingPrefs && (
         <>
           <header className="flex gap-4 px-4 py-2 w-full items-center bg-slate-900/40 border-b border-slate-800 text-slate-900 dark:text-slate-200">
-            {/* dir stats */}
             <aside className="grid grid-cols-2 justify-items-center uppercase">
               <p>Total</p>
               <p>{medias.length}</p>
@@ -339,11 +380,13 @@ function App() {
               <p>{medias.length && medias.length - (currentMediaIndex + 1)}</p>
             </aside>
 
-            {/* directory picker */}
             <FileBrowser
               dir={dir}
               onDirChange={(newDir) => {
                 if (newDir === dir) {
+                  // reload same dir
+                  imagePrefetcher.clear()
+                  imageCache.clear()
                   loadDir(newDir)
                 } else {
                   setDir(newDir)
@@ -355,7 +398,6 @@ function App() {
           </header>
 
           <main className={'flex-1 flex overflow-hidden px-4 py-1'}>
-            {/* Image Viewer & Controller */}
             <MediaViewer
               className={'flex-1'}
               mediaPath={mediaPath}
@@ -405,11 +447,18 @@ function App() {
                   if (newMediaPath !== originalPath) {
                     setMovedHistory((prev) => ({ ...prev, [newMediaPath]: originalPath }))
                   }
-                  setMedias(
-                    medias.map((media) =>
-                      media.path === mediaPath ? { ...media, path: newMediaPath } : media
-                    )
+                  setMedias((prev) =>
+                    prev.map((m) => (m.path === originalPath ? { ...m, path: newMediaPath } : m))
                   )
+
+
+                  // ✅ Preserve decoded blob cache when moving the same file
+                  // IMPORTANT: silent rename avoids cache "emit" re-render BEFORE medias/current path update
+                  if (imageCache.hasDecoded(originalPath)) {
+                    imageCache.rename(originalPath, newMediaPath, { emitNow: false })
+                  } else {
+                    imageCache.delete(originalPath)
+                  }
                 }
               }}
               undoButtonText="Undo"
@@ -422,12 +471,10 @@ function App() {
 
             {/* Right Section */}
             <div className="flex flex-col gap-2 w-56 select-none">
-              {/* Action Icons and Media Meta */}
-              <div className='flex p-1 gap-2 justify-between'>
+              <div className="flex p-1 gap-2 justify-between">
                 <div></div>
 
-                <div className='flex gap-2'>
-                  {/* move tagged images: folder icon button */}
+                <div className="flex gap-2">
                   <div>
                     <button
                       type="button"
@@ -435,7 +482,7 @@ function App() {
                       title={
                         moveLocation
                           ? `Move tagged medias\n\nTarget: ${moveLocation}`
-                          : "Move tagged medias: click to choose destination"
+                          : 'Move tagged medias: click to choose destination'
                       }
                       onClick={async () => {
                         if (moveLocation) {
@@ -447,22 +494,20 @@ function App() {
                         }
                       }}
                       className={cn(
-                        "relative",
+                        'relative',
                         moveLocation
-                          ? "text-slate-900 dark:text-slate-100 opacity-100 hover:opacity-90"
+                          ? 'text-slate-900 dark:text-slate-100 opacity-100 hover:opacity-90'
                           : [
-                            "text-slate-500 dark:text-slate-500 opacity-50 hover:opacity-70",
-                            // slash overlay
+                            'text-slate-500 dark:text-slate-500 opacity-50 hover:opacity-70',
                             'after:content-[""] after:absolute after:left-0.5 after:right-0.5 after:top-1/2',
-                            "after:h-px after:bg-current after:-rotate-45 after:pointer-events-none",
-                          ].join(" ")
+                            'after:h-px after:bg-current after:-rotate-45 after:pointer-events-none'
+                          ].join(' ')
                       )}
                     >
                       <IconFolderShare size={16} />
                     </button>
                   </div>
 
-                  {/* Theme toggle */}
                   <div>
                     <button
                       title="Toggle theme"
@@ -474,7 +519,7 @@ function App() {
                 </div>
               </div>
 
-              <div className='flex flex-col gap-2'>
+              <div className="flex flex-col gap-2">
                 <WorkspaceSelector
                   workspaces={workspaces}
                   activeWorkspaceId={activeWorkspaceId}
@@ -482,7 +527,7 @@ function App() {
                   onWorkspaceCreate={handleWorkspaceCreate}
                   onWorkspaceDelete={handleWorkspaceDelete}
                 />
-                <div className='flex'>
+                <div className="flex">
                   <ProfileList
                     profiles={profiles}
                     currentProfile={currentProfile}
@@ -500,8 +545,6 @@ function App() {
                 </div>
               </div>
 
-
-              {/* Tag List */}
               <SelectableList
                 tags={tags}
                 groups={groups}
@@ -523,7 +566,6 @@ function App() {
                 <BounceLoader color="#4b5563" loading={loadingMediaTags} size={30} />
               </div>
 
-              {/* Tag Input */}
               <div className="flex gap-2">
                 <InputText
                   placeholder="New Tag"
@@ -538,7 +580,6 @@ function App() {
                 />
               </div>
 
-              {/* Group Input */}
               <div className="flex gap-2">
                 <InputText
                   placeholder="New Group"
