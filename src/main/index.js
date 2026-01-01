@@ -3,7 +3,6 @@ import * as path from 'path'
 import fs from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { glob } from 'glob'
-import { Readable } from 'stream'
 import mime from 'mime'
 
 // MUST be called before app.whenReady()
@@ -162,6 +161,37 @@ function parseRange(rangeHeader, size) {
   return { start, end }
 }
 
+function nodeStreamToWeb(nodeStream) {
+  return new ReadableStream({
+    start(controller) {
+      nodeStream.on('data', (chunk) => {
+        try {
+          controller.enqueue(chunk)
+        } catch (e) {
+          nodeStream.destroy()
+        }
+      })
+      nodeStream.on('end', () => {
+        try {
+          controller.close()
+        } catch (e) {
+          // Ignore
+        }
+      })
+      nodeStream.on('error', (err) => {
+        try {
+          controller.error(err)
+        } catch (e) {
+          // Ignore
+        }
+      })
+    },
+    cancel() {
+      nodeStream.destroy()
+    }
+  })
+}
+
 app.whenReady().then(() => {
   protocol.handle('imgx', async (request) => {
     try {
@@ -197,14 +227,14 @@ app.whenReady().then(() => {
         headers.set('Content-Length', String(chunkSize))
 
         const nodeStream = fs.createReadStream(filePath, { start: r.start, end: r.end })
-        const webStream = Readable.toWeb(nodeStream)
+        const webStream = nodeStreamToWeb(nodeStream)
         return new Response(webStream, { status: 206, headers })
       }
 
       // Full file
       headers.set('Content-Length', String(size))
       const nodeStream = fs.createReadStream(filePath)
-      const webStream = Readable.toWeb(nodeStream)
+      const webStream = nodeStreamToWeb(nodeStream)
       return new Response(webStream, { status: 200, headers })
     } catch (e) {
       console.error('imgx handler error:', e)
