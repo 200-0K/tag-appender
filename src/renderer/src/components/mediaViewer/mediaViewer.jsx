@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { getFileName } from '../../../../../utils/path-format'
 import { IconEye } from '@tabler/icons-react'
 import Button from '../Button'
@@ -124,6 +124,36 @@ function MediaViewer({
     }
   }, [desiredSrc, mediaType])
 
+  const videoOptions = useMemo(() => ({
+    autoplay: true,
+    controls: true,
+    responsive: true,
+    fluid: mediaType?.toLowerCase().startsWith('audio'),
+    audioOnlyMode: mediaType?.toLowerCase().startsWith('audio'),
+    fill: mediaType?.toLowerCase().startsWith('video'),
+    sources: [{ src: displaySrc, type: mediaType }],
+    id: playerId
+  }), [displaySrc, mediaType, playerId])
+
+  const handleVideoReady = useCallback((player) => {
+    const storedVolume = localStorage.getItem('video-volume')
+    const storedMuted = localStorage.getItem('video-muted')
+
+    if (storedVolume !== null) player.volume(parseFloat(storedVolume))
+    if (storedMuted !== null) player.muted(storedMuted === 'true')
+
+    player.on('volumechange', () => {
+      localStorage.setItem('video-volume', player.volume())
+      localStorage.setItem('video-muted', player.muted())
+    })
+
+    const triggerLoaded = () => {
+      onMediaLoaded?.({ width: player.videoWidth(), height: player.videoHeight() })
+    }
+    if (player.readyState() >= 1) triggerLoaded()
+    else player.one('loadedmetadata', triggerLoaded)
+  }, [onMediaLoaded])
+
   return (
     <div className={['flex flex-col gap-2 px-2', className].join(' ')}>
       <div className="flex flex-col gap-1">
@@ -240,34 +270,8 @@ function MediaViewer({
         ) : (mediaType?.toLowerCase().startsWith('video') || mediaType?.toLowerCase().startsWith('audio')) ? (
           <VideoJS
             key={displaySrc}
-            options={{
-              autoplay: true,
-              controls: true,
-              responsive: true,
-              fluid: mediaType?.toLowerCase().startsWith('audio'),
-              audioOnlyMode: mediaType?.toLowerCase().startsWith('audio'),
-              fill: mediaType?.toLowerCase().startsWith('video'),
-              sources: [{ src: displaySrc, type: mediaType }],
-              id: playerId
-            }}
-            onReady={(player) => {
-              const storedVolume = localStorage.getItem('video-volume')
-              const storedMuted = localStorage.getItem('video-muted')
-
-              if (storedVolume !== null) player.volume(parseFloat(storedVolume))
-              if (storedMuted !== null) player.muted(storedMuted === 'true')
-
-              player.on('volumechange', () => {
-                localStorage.setItem('video-volume', player.volume())
-                localStorage.setItem('video-muted', player.muted())
-              })
-
-              const triggerLoaded = () => {
-                onMediaLoaded?.({ width: player.videoWidth(), height: player.videoHeight() })
-              }
-              if (player.readyState() >= 1) triggerLoaded()
-              else player.one('loadedmetadata', triggerLoaded)
-            }}
+            options={videoOptions}
+            onReady={handleVideoReady}
           />
         ) : null}
       </div>
