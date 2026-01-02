@@ -1,8 +1,28 @@
-import { ipcMain } from "electron";
+import { ipcMain, app } from "electron";
 import PreferenceStore from "../stores/PreferenceStore";
+import fs from "fs";
+import path from "path";
+
+let configPath = null;
+
+// Check if we are restarting from an update with a saved CWD
+try {
+  const updateCwdPath = path.join(app.getPath('userData'), 'update-cwd');
+  if (fs.existsSync(updateCwdPath)) {
+    configPath = fs.readFileSync(updateCwdPath, 'utf8');
+    fs.unlinkSync(updateCwdPath); // Clean up
+  }
+} catch (e) {
+  console.error('Failed to read update context:', e);
+}
+
+// Fallback to --current flag if no update context found
+if (!configPath && process.argv.includes("--current")) {
+  configPath = process.cwd();
+}
 
 const preferenceStore = new PreferenceStore({
-  path: process.argv.includes("--current") ? process.cwd() : null,
+  path: configPath,
   // defaults: {
   //   dir: null,
   //   currentImgIndex: null,

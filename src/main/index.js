@@ -72,6 +72,14 @@ function createWindow() {
 
   ipcMain.removeHandler('quit-and-install')
   ipcMain.handle('quit-and-install', () => {
+    if (process.argv.includes('--current')) {
+      try {
+        const updateCwdPath = path.join(app.getPath('userData'), 'update-cwd')
+        fs.writeFileSync(updateCwdPath, process.cwd(), 'utf8')
+      } catch (e) {
+        console.error('Failed to save update context:', e)
+      }
+    }
     autoUpdater.quitAndInstall()
   })
 
