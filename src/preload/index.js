@@ -31,7 +31,15 @@ const api = {
   deleteWorkspace: (id) => ipcRenderer.invoke('workspace-delete', id),
 
   executeScript: (script) => ipcRenderer.invoke('execute-script', script),
-  openFile: (filepath) => ipcRenderer.invoke('file-open', filepath)
+  openFile: (filepath) => ipcRenderer.invoke('file-open', filepath),
+
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  quitAndInstall: () => ipcRenderer.invoke('quit-and-install'),
+  onUpdateStatus: (callback) => {
+    const listener = (_, value) => callback(value.status, value)
+    ipcRenderer.on('update-status', listener)
+    return () => ipcRenderer.removeListener('update-status', listener)
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

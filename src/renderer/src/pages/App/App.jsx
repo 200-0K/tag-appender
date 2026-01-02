@@ -18,7 +18,7 @@ import { directoryPicker } from '../../utils/pickers'
 import BounceLoader from 'react-spinners/BounceLoader'
 import ExternalScriptButton from '../../components/ExternalScriptButton/ExternalScriptButton'
 import { humanFileSize } from './utils/bytes'
-import { IconCheck, IconSun, IconMoon, IconRefresh, IconFolder, IconFolderSymlink, IconArrowRight, IconArrowLeft, IconFolderBolt, IconFolderShare } from '@tabler/icons-react'
+import { IconCheck, IconSun, IconMoon, IconRefresh, IconFolder, IconFolderSymlink, IconArrowRight, IconArrowLeft, IconFolderBolt, IconFolderShare, IconCloudDownload } from '@tabler/icons-react'
 import { inLocation, getFileParentPath } from '../../../../../utils/path-format'
 
 // ✅ PREFETCH: new imports
@@ -45,6 +45,7 @@ function App() {
   const [selectedTags, setSelectedTags] = useState([])
   const [movedHistory, setMovedHistory] = useState({}) // { newPath: originalPath }
   const [navDir, setNavDir] = useState(1)
+  const [checkingUpdate, setCheckingUpdate] = useState(false)
 
   const clampIndex = (i) => {
     if (!medias || medias.length === 0) return null
@@ -127,6 +128,70 @@ function App() {
       setLoadingPrefs(false)
     }
     init().catch(console.error)
+  }, [])
+
+  useEffect(() => {
+    if (!window.api.onUpdateStatus) return
+
+    const removeListener = window.api.onUpdateStatus((status, data) => {
+      switch (status) {
+        case 'checking-for-update':
+          setCheckingUpdate(true)
+          break
+        case 'update-available':
+          Swal.fire({
+            title: 'Update available, downloading...',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            icon: 'info'
+          })
+          break
+        case 'update-not-available':
+          setCheckingUpdate(false)
+          Swal.fire({
+            title: 'Up to date',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            icon: 'success'
+          })
+          break
+        case 'error':
+          setCheckingUpdate(false)
+          Swal.fire({
+            title: 'Update Error',
+            text: data.error,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 5000,
+            icon: 'error'
+          })
+          break
+        case 'update-downloaded':
+          setCheckingUpdate(false)
+          Swal.fire({
+            title: 'Update Downloaded',
+            text: 'Restart now to install?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Restart',
+            cancelButtonText: 'Later'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              window.api.quitAndInstall()
+            }
+          })
+          break
+      }
+    })
+
+    return () => {
+      if (removeListener) removeListener()
+    }
   }, [])
 
   const handleWorkspaceChange = async (id) => {
@@ -395,6 +460,18 @@ function App() {
               }}
               className="flex-1"
             />
+
+            <button
+              onClick={() => window.api.checkForUpdates()}
+              className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+              title="Check for updates"
+            >
+              {checkingUpdate ? (
+                <IconRefresh className="animate-spin" size={20} />
+              ) : (
+                <IconCloudDownload size={20} />
+              )}
+            </button>
           </header>
 
           <main className={'flex-1 flex overflow-hidden px-4 py-1'}>

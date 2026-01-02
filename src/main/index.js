@@ -1,4 +1,5 @@
-import { app, shell, BrowserWindow, protocol } from 'electron'
+import { app, shell, BrowserWindow, protocol, ipcMain } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import * as path from 'path'
 import fs from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -60,6 +61,59 @@ function createWindow() {
   } else {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
   }
+
+  // Auto-updater logic
+  autoUpdater.autoDownload = true
+
+  ipcMain.removeHandler('check-for-updates')
+  ipcMain.handle('check-for-updates', () => {
+    return autoUpdater.checkForUpdates()
+  })
+
+  ipcMain.removeHandler('quit-and-install')
+  ipcMain.handle('quit-and-install', () => {
+    autoUpdater.quitAndInstall()
+  })
+
+  const sendStatusToWindow = (text, data = {}) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-status', { status: text, ...data })
+    }
+  }
+
+  const events = [
+    'checking-for-update',
+    'update-available',
+    'update-not-available',
+    'error',
+    'download-progress',
+    'update-downloaded'
+  ]
+  events.forEach((event) => autoUpdater.removeAllListeners(event))
+
+  autoUpdater.on('checking-for-update', () => {
+    sendStatusToWindow('checking-for-update')
+  })
+
+  autoUpdater.on('update-available', (info) => {
+    sendStatusToWindow('update-available', { info })
+  })
+
+  autoUpdater.on('update-not-available', (info) => {
+    sendStatusToWindow('update-not-available', { info })
+  })
+
+  autoUpdater.on('error', (err) => {
+    sendStatusToWindow('error', { error: err.toString() })
+  })
+
+  autoUpdater.on('download-progress', (progressObj) => {
+    sendStatusToWindow('download-progress', { progress: progressObj })
+  })
+
+  autoUpdater.on('update-downloaded', (info) => {
+    sendStatusToWindow('update-downloaded', { info })
+  })
 }
 
 function safeDecodeURIComponent(s) {
