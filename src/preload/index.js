@@ -35,6 +35,7 @@ const api = {
 
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   quitAndInstall: () => ipcRenderer.invoke('quit-and-install'),
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   onUpdateStatus: (callback) => {
     const listener = (_, value) => callback(value.status, value)
     ipcRenderer.on('update-status', listener)

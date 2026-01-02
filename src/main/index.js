@@ -75,6 +75,10 @@ function createWindow() {
     autoUpdater.quitAndInstall()
   })
 
+  ipcMain.handle('get-app-version', () => {
+    return app.getVersion()
+  })
+
   const sendStatusToWindow = (text, data = {}) => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('update-status', { status: text, ...data })

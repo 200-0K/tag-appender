@@ -46,6 +46,7 @@ function App() {
   const [movedHistory, setMovedHistory] = useState({}) // { newPath: originalPath }
   const [navDir, setNavDir] = useState(1)
   const [checkingUpdate, setCheckingUpdate] = useState(false)
+  const [appVersion, setAppVersion] = useState('')
 
   const clampIndex = (i) => {
     if (!medias || medias.length === 0) return null
@@ -118,6 +119,8 @@ function App() {
       }
 
       const profiles = (await getProfiles()) ?? []
+      const version = await window.api.getAppVersion()
+      setAppVersion(version)
       setDir(dir)
       setCurrentMediaIndex(currentMediaIndex)
       setCurrentMediaPath(currentMediaPath)
@@ -464,7 +467,7 @@ function App() {
             <button
               onClick={() => window.api.checkForUpdates()}
               className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
-              title="Check for updates"
+              title={`Check for updates (current: ${appVersion})`}
             >
               {checkingUpdate ? (
                 <IconRefresh className="animate-spin" size={20} />
