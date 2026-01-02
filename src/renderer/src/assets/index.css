@@ -22,6 +22,39 @@ html.dark body {
 	@apply bg-slate-950 text-slate-200;
 }
 
+/* SweetAlert2 Dark Mode Overrides */
+html.dark .swal2-popup {
+	@apply bg-slate-900 text-slate-200;
+}
+
+html.dark .swal2-title,
+html.dark .swal2-html-container,
+html.dark .swal2-content,
+html.dark .swal2-footer {
+	@apply text-slate-200 border-slate-700;
+}
+
+html.dark .swal2-input,
+html.dark .swal2-textarea {
+	@apply bg-slate-800 text-slate-100 border-slate-700;
+}
+
+html.dark .swal2-validation-message {
+	@apply bg-slate-800 text-slate-200;
+}
+
+html.dark .swal2-confirm {
+	@apply bg-indigo-600 text-white;
+}
+
+html.dark .swal2-cancel {
+	@apply bg-slate-700 text-slate-100;
+}
+
+html.dark .swal2-timer-progress-bar {
+	@apply bg-blue-500;
+}
+
 /* Optional: small scrollbar style for dark theme */
 @layer utilities {
 	.scrollbar-thin {
