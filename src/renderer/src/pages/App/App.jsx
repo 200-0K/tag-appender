@@ -466,7 +466,13 @@ function App() {
 
             <button
               onClick={() => window.api.checkForUpdates()}
-              className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+              disabled={checkingUpdate}
+              className={cn(
+                'p-2 rounded-full transition-colors',
+                checkingUpdate
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:bg-slate-200 dark:hover:bg-slate-700'
+              )}
               title={`Check for updates (current: ${appVersion})`}
             >
               {checkingUpdate ? (
