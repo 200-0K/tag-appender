@@ -21,6 +21,14 @@ if (!configPath && process.argv.includes("--current")) {
   configPath = process.cwd();
 }
 
+if (configPath) {
+  try {
+    process.chdir(configPath);
+  } catch (e) {
+    console.error('Failed to change directory to:', configPath, e);
+  }
+}
+
 const preferenceStore = new PreferenceStore({
   path: configPath,
   // defaults: {
