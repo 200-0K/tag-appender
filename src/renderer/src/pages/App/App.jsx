@@ -47,6 +47,7 @@ function App() {
   const [navDir, setNavDir] = useState(1)
   const [checkingUpdate, setCheckingUpdate] = useState(false)
   const [appVersion, setAppVersion] = useState('')
+  const [downloadProgress, setDownloadProgress] = useState(null)
 
   const clampIndex = (i) => {
     if (!medias || medias.length === 0) return null
@@ -140,6 +141,7 @@ function App() {
       switch (status) {
         case 'checking-for-update':
           setCheckingUpdate(true)
+          setDownloadProgress(null)
           break
         case 'update-available':
           Swal.fire({
@@ -151,8 +153,13 @@ function App() {
             icon: 'info'
           })
           break
+        case 'download-progress':
+          setCheckingUpdate(true)
+          setDownloadProgress(data.progress?.percent ?? 0)
+          break
         case 'update-not-available':
           setCheckingUpdate(false)
+          setDownloadProgress(null)
           Swal.fire({
             title: 'Up to date',
             toast: true,
@@ -164,6 +171,7 @@ function App() {
           break
         case 'error':
           setCheckingUpdate(false)
+          setDownloadProgress(null)
           Swal.fire({
             title: 'Update Error',
             text: data.error,
@@ -176,6 +184,7 @@ function App() {
           break
         case 'update-downloaded':
           setCheckingUpdate(false)
+          setDownloadProgress(null)
           Swal.fire({
             title: 'Update Downloaded',
             text: 'Restart now to install?',
@@ -475,7 +484,11 @@ function App() {
               )}
               title={`Check for updates (current: ${appVersion})`}
             >
-              {checkingUpdate ? (
+              {downloadProgress !== null ? (
+                <span className="text-[10px] font-bold flex items-center justify-center w-5 h-5">
+                  {Math.round(downloadProgress)}%
+                </span>
+              ) : checkingUpdate ? (
                 <IconRefresh className="animate-spin" size={20} />
               ) : (
                 <IconCloudDownload size={20} />
