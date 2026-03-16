@@ -4,7 +4,7 @@ import { createProfileData } from './profile-defaults'
 export async function getTagsFromFile(filePath, { tagFileExt } = {}) {
   if (!filePath) return null
   filePath = tagFileExt ? getFileWithoutExtension(filePath) + `.${tagFileExt}` : filePath
-  
+
   if (filePath.endsWith('.ta')) {
     const data = await window.api.readJsonFile(filePath)
     return { tags: data?.tags ?? [], groups: data?.groups ?? [] }
@@ -39,7 +39,7 @@ export async function appendTag(filePath, tag) {
     const data = await window.api.readJsonFile(filePath)
     const tags = data?.tags ?? []
     const groups = data?.groups ?? []
-    if (!tags.find(t => t.name === tag)) {
+    if (!tags.find((t) => t.name === tag)) {
       tags.push({ name: tag })
       return await window.api.writeJsonFile(filePath, createProfileData(tags, groups))
     }

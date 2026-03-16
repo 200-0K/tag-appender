@@ -100,7 +100,6 @@ class LRUImageCache {
     if (emitNow) emit()
   }
 
-
   delete(path) {
     if (!path) return
     const entry = this.map.get(path)

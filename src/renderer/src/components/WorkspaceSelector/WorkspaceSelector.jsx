@@ -13,7 +13,7 @@ export default function WorkspaceSelector({
   className
 }) {
   return (
-    <div className={cn("flex gap-2", className)}>
+    <div className={cn('flex gap-2', className)}>
       <DropdownMenu
         items={workspaces.map((w) => ({
           value: w.id,
@@ -50,7 +50,7 @@ export default function WorkspaceSelector({
             return
           }
 
-          const active = workspaces.find(w => w.id === activeWorkspaceId)
+          const active = workspaces.find((w) => w.id === activeWorkspaceId)
           const { isConfirmed } = await Swal.fire({
             title: 'Delete Workspace?',
             text: `Are you sure you want to delete "${active?.name}"?`,
@@ -65,7 +65,7 @@ export default function WorkspaceSelector({
           }
         }}
         title="Delete Current Workspace"
-        variant='destructive'
+        variant="destructive"
       >
         <IconTrash size={16} />
       </Button>

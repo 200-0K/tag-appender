@@ -13,13 +13,17 @@ const api = {
   createTagFile: (filepath) => ipcRenderer.invoke('file-create', filepath),
   readTagFile: (filepath) => ipcRenderer.invoke('file-read', filepath, { delimiter: ',' }),
   writeTagsToFile: (filepath, tags) => ipcRenderer.invoke('file-write', filepath, tags.join(',')),
-  appendTagToFile: (filepath, tag) => ipcRenderer.invoke('file-write', filepath, ',' + tag, { append: true }),
+  appendTagToFile: (filepath, tag) =>
+    ipcRenderer.invoke('file-write', filepath, ',' + tag, { append: true }),
 
-  readJsonFile: (filepath) => ipcRenderer.invoke('file-read', filepath).then(res => res ? JSON.parse(res) : null),
-  writeJsonFile: (filepath, data) => ipcRenderer.invoke('file-write', filepath, JSON.stringify(data, null, 2)),
+  readJsonFile: (filepath) =>
+    ipcRenderer.invoke('file-read', filepath).then((res) => (res ? JSON.parse(res) : null)),
+  writeJsonFile: (filepath, data) =>
+    ipcRenderer.invoke('file-write', filepath, JSON.stringify(data, null, 2)),
 
   moveFile: (src, dest, options) => ipcRenderer.invoke('file-move', src, dest, options),
-  renameFile: (oldPath, newPath, options) => ipcRenderer.invoke('file-rename', oldPath, newPath, options),
+  renameFile: (oldPath, newPath, options) =>
+    ipcRenderer.invoke('file-rename', oldPath, newPath, options),
   deleteFile: (filepath) => ipcRenderer.invoke('file-delete', filepath),
 
   getPreference: () => ipcRenderer.invoke('preference-store-get'),

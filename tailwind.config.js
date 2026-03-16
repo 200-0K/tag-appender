@@ -1,16 +1,14 @@
-const colors = require('tailwindcss/colors');
-const defaultTheme = require('tailwindcss/defaultTheme');
+const colors = require('tailwindcss/colors')
+const defaultTheme = require('tailwindcss/defaultTheme')
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}"
-  ],
+  content: ['./src/**/*.{js,jsx,ts,tsx}'],
   darkMode: 'class',
   theme: {
     extend: {
       fontFamily: {
-        'sans': ['Inter Variable', 'Inter', ...defaultTheme.fontFamily.sans],
+        sans: ['Inter Variable', 'Inter', ...defaultTheme.fontFamily.sans]
       },
       colors: {
         // surface and card tones for the dark theme
@@ -19,10 +17,10 @@ module.exports = {
         accent: colors.indigo[500]
       },
       backgroundColor: {
-        'button': colors.gray[600],
+        button: colors.gray[600],
         'drop-down': colors.zinc[300]
-      },
-    },
+      }
+    }
   },
-  plugins: [],
+  plugins: []
 }
