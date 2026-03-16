@@ -77,7 +77,9 @@ export const imagePrefetcher = {
     // Abort in-flight not needed
     for (const [path, job] of inFlight.entries()) {
       if (!keep.has(path)) {
-        try { job.abort.abort() } catch {}
+        try {
+          job.abort.abort()
+        } catch {}
         inFlight.delete(path)
       }
     }
@@ -141,14 +143,18 @@ export const imagePrefetcher = {
       })
     } catch {
       if (objectUrl) {
-        try { URL.revokeObjectURL(objectUrl) } catch {}
+        try {
+          URL.revokeObjectURL(objectUrl)
+        } catch {}
       }
     }
   },
 
   clear() {
     for (const job of inFlight.values()) {
-      try { job.abort.abort() } catch {}
+      try {
+        job.abort.abort()
+      } catch {}
     }
     inFlight.clear()
     queue.length = 0

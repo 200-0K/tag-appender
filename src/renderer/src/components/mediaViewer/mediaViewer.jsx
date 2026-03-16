@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore
+} from 'react'
 import { getFileName } from '../../../../../utils/path-format'
 import { IconEye } from '@tabler/icons-react'
 import Button from '../Button'
@@ -72,7 +79,10 @@ function MediaViewer({
   const _cacheVersion = useImageCacheVersion()
 
   // What we *want* to show right now (blob if present, else imgx)
-  const desiredSrc = useMemo(() => resolveBestSrc(mediaPath, mediaType), [mediaPath, mediaType, _cacheVersion])
+  const desiredSrc = useMemo(
+    () => resolveBestSrc(mediaPath, mediaType),
+    [mediaPath, mediaType, _cacheVersion]
+  )
 
   // What we are *currently* showing (we keep old until new is decoded to avoid flicker)
   const [displaySrc, setDisplaySrc] = useState(desiredSrc)
@@ -98,61 +108,67 @@ function MediaViewer({
     const isBlob = typeof desiredSrc === 'string' && desiredSrc.startsWith('blob:')
     const shouldWaitForDecode = isBlob // only gate on blob hits
 
-      ; (async () => {
-        try {
-          if (!shouldWaitForDecode) {
-            // ✅ MISS: swap immediately (feels fast), browser decodes in background
-            setDisplaySrc(desiredSrc)
-            setLoadingSwap(true)
-            return
-          }
-
-          // ✅ HIT: decode first to avoid flicker
+    ;(async () => {
+      try {
+        if (!shouldWaitForDecode) {
+          // ✅ MISS: swap immediately (feels fast), browser decodes in background
+          setDisplaySrc(desiredSrc)
           setLoadingSwap(true)
-          await decodeBeforeSwap(desiredSrc)
-          if (cancelled) return
-          if (swapTokenRef.current === token) setDisplaySrc(desiredSrc)
-        } catch {
-          if (!cancelled && swapTokenRef.current === token) setDisplaySrc(desiredSrc)
-        } finally {
-          if (!cancelled && swapTokenRef.current === token) setLoadingSwap(false)
+          return
         }
-      })()
+
+        // ✅ HIT: decode first to avoid flicker
+        setLoadingSwap(true)
+        await decodeBeforeSwap(desiredSrc)
+        if (cancelled) return
+        if (swapTokenRef.current === token) setDisplaySrc(desiredSrc)
+      } catch {
+        if (!cancelled && swapTokenRef.current === token) setDisplaySrc(desiredSrc)
+      } finally {
+        if (!cancelled && swapTokenRef.current === token) setLoadingSwap(false)
+      }
+    })()
 
     return () => {
       cancelled = true
     }
   }, [desiredSrc, mediaType])
 
-  const videoOptions = useMemo(() => ({
-    autoplay: true,
-    controls: true,
-    responsive: true,
-    fluid: mediaType?.toLowerCase().startsWith('audio'),
-    audioOnlyMode: mediaType?.toLowerCase().startsWith('audio'),
-    fill: mediaType?.toLowerCase().startsWith('video'),
-    sources: [{ src: displaySrc, type: mediaType }],
-    id: playerId
-  }), [displaySrc, mediaType, playerId])
+  const videoOptions = useMemo(
+    () => ({
+      autoplay: true,
+      controls: true,
+      responsive: true,
+      fluid: mediaType?.toLowerCase().startsWith('audio'),
+      audioOnlyMode: mediaType?.toLowerCase().startsWith('audio'),
+      fill: mediaType?.toLowerCase().startsWith('video'),
+      sources: [{ src: displaySrc, type: mediaType }],
+      id: playerId
+    }),
+    [displaySrc, mediaType, playerId]
+  )
 
-  const handleVideoReady = useCallback((player) => {
-    const storedVolume = localStorage.getItem('video-volume')
-    const storedMuted = localStorage.getItem('video-muted')
+  const handleVideoReady = useCallback(
+    (player) => {
+      const storedVolume = localStorage.getItem('video-volume')
+      const storedMuted = localStorage.getItem('video-muted')
 
-    if (storedVolume !== null) player.volume(parseFloat(storedVolume))
-    if (storedMuted !== null) player.muted(storedMuted === 'true')
+      if (storedVolume !== null) player.volume(parseFloat(storedVolume))
+      if (storedMuted !== null) player.muted(storedMuted === 'true')
 
-    player.on('volumechange', () => {
-      localStorage.setItem('video-volume', player.volume())
-      localStorage.setItem('video-muted', player.muted())
-    })
+      player.on('volumechange', () => {
+        localStorage.setItem('video-volume', player.volume())
+        localStorage.setItem('video-muted', player.muted())
+      })
 
-    const triggerLoaded = () => {
-      onMediaLoaded?.({ width: player.videoWidth(), height: player.videoHeight() })
-    }
-    if (player.readyState() >= 1) triggerLoaded()
-    else player.one('loadedmetadata', triggerLoaded)
-  }, [onMediaLoaded])
+      const triggerLoaded = () => {
+        onMediaLoaded?.({ width: player.videoWidth(), height: player.videoHeight() })
+      }
+      if (player.readyState() >= 1) triggerLoaded()
+      else player.one('loadedmetadata', triggerLoaded)
+    },
+    [onMediaLoaded]
+  )
 
   return (
     <div className={['flex flex-col gap-2 px-2', className].join(' ')}>
@@ -229,7 +245,9 @@ function MediaViewer({
                 'px-2 py-1 rounded text-[10px] font-mono select-none',
                 cacheHit ? 'bg-green-600/30 text-green-200' : 'bg-slate-600/30 text-slate-200'
               ].join(' ')}
-              title={cacheHit ? 'Cache HIT (blob: URL in RAM)' : 'Cache MISS (loading from imgx://)'}
+              title={
+                cacheHit ? 'Cache HIT (blob: URL in RAM)' : 'Cache MISS (loading from imgx://)'
+              }
             >
               {cacheHit ? 'HIT' : 'MISS'}
             </div>
@@ -251,7 +269,7 @@ function MediaViewer({
               draggable={false}
               decoding="async"
               loading="eager"
-              fetchpriority="high"
+              fetchPriority="high"
               onLoad={(e) => {
                 if (mediaPath) imageCache.touch(mediaPath)
                 onMediaLoaded?.({ width: e.target.naturalWidth, height: e.target.naturalHeight })
@@ -263,16 +281,13 @@ function MediaViewer({
             />
             {loadingSwap && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <BeatLoader className='opacity-15' />
+                <BeatLoader className="opacity-15" />
               </div>
             )}
           </>
-        ) : (mediaType?.toLowerCase().startsWith('video') || mediaType?.toLowerCase().startsWith('audio')) ? (
-          <VideoJS
-            key={displaySrc}
-            options={videoOptions}
-            onReady={handleVideoReady}
-          />
+        ) : mediaType?.toLowerCase().startsWith('video') ||
+          mediaType?.toLowerCase().startsWith('audio') ? (
+          <VideoJS key={displaySrc} options={videoOptions} onReady={handleVideoReady} />
         ) : null}
       </div>
     </div>

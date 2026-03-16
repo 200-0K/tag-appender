@@ -9,10 +9,12 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: Object.fromEntries(
-          glob.sync(resolve(__dirname, "./src/main/**/*.js")).map(file => [
-            path.relative("src/main", file.slice(0, file.length - path.extname(file).length)),
-            file
-          ])
+          glob
+            .sync(resolve(__dirname, './src/main/**/*.js'))
+            .map((file) => [
+              path.relative('src/main', file.slice(0, file.length - path.extname(file).length)),
+              file
+            ])
         )
       }
     }

@@ -18,7 +18,21 @@ import { directoryPicker } from '../../utils/pickers'
 import BounceLoader from 'react-spinners/BounceLoader'
 import ExternalScriptButton from '../../components/ExternalScriptButton/ExternalScriptButton'
 import { humanFileSize } from './utils/bytes'
-import { IconCheck, IconSun, IconMoon, IconRefresh, IconFolder, IconFolderSymlink, IconArrowRight, IconArrowLeft, IconFolderBolt, IconFolderShare, IconCloudDownload } from '@tabler/icons-react'
+import {
+  IconCheck,
+  IconSun,
+  IconMoon,
+  IconRefresh,
+  IconFolder,
+  IconFolderSymlink,
+  IconArrowRight,
+  IconArrowLeft,
+  IconFolderBolt,
+  IconFolderShare,
+  IconCloudDownload,
+  IconLock,
+  IconLockOpen
+} from '@tabler/icons-react'
 import { inLocation, getFileParentPath } from '../../../../../utils/path-format'
 
 // ✅ PREFETCH: new imports
@@ -287,7 +301,15 @@ function App() {
     window.api
       .updatePreference({ dir, currentMediaPath, currentProfile, moveLocation, autotagScript })
       .catch(console.error)
-  }, [dir, currentMediaPath, currentProfile, moveLocation, autotagScript, loadingPrefs, switchingWorkspace])
+  }, [
+    dir,
+    currentMediaPath,
+    currentProfile,
+    moveLocation,
+    autotagScript,
+    loadingPrefs,
+    switchingWorkspace
+  ])
 
   // directory changed
   const loadDir = (dir, { resetIndex = false } = {}) => {
@@ -337,7 +359,10 @@ function App() {
       mediaTags = mediaTags ?? []
       setMediaTags(mediaTags)
       const newSelectedTags = [
-        ...new Set([...selectedTags.filter((tag) => tags.some((t) => t.name === tag)), ...mediaTags])
+        ...new Set([
+          ...selectedTags.filter((tag) => tags.some((t) => t.name === tag)),
+          ...mediaTags
+        ])
       ]
       setSelectedTags(newSelectedTags)
       setLoadingMediaTags(false)
@@ -405,6 +430,20 @@ function App() {
     setTags(newTags)
     if (newGroups) setGroups(newGroups)
     putTagsToFile(currentProfile, newTags, { groups: newGroups ?? groups }).catch(console.error)
+  }
+
+  const handleLockToggle = (tagName) => {
+    const tag = tags.find((t) => t.name === tagName)
+    if (!tag) return
+
+    const newTags = tags.map((t) => (t.name === tagName ? { ...t, locked: !t.locked } : t))
+
+    setTags(newTags)
+    putTagsToFile(currentProfile, newTags, { groups }).catch(console.error)
+
+    if (tag.locked && selectedTags.includes(tagName)) {
+      setSelectedTags((prev) => prev.filter((t) => t !== tagName))
+    }
   }
 
   const handleMediaLoaded = useCallback(
@@ -503,10 +542,16 @@ function App() {
               mediaType={medias[currentMediaIndex]?.type}
               mediaMeta={
                 medias[currentMediaIndex] && [
-                  <span key="created" title={new Date(medias[currentMediaIndex].created).toLocaleString()}>
+                  <span
+                    key="created"
+                    title={new Date(medias[currentMediaIndex].created).toLocaleString()}
+                  >
                     {`C: ${new Date(medias[currentMediaIndex].created).toLocaleDateString()}`}
                   </span>,
-                  <span key="modified" title={new Date(medias[currentMediaIndex].modified).toLocaleString()}>
+                  <span
+                    key="modified"
+                    title={new Date(medias[currentMediaIndex].modified).toLocaleString()}
+                  >
                     {`M: ${new Date(medias[currentMediaIndex].modified).toLocaleDateString()}`}
                   </span>,
                   `${medias[currentMediaIndex].type}`,
@@ -516,8 +561,8 @@ function App() {
                       medias[currentMediaIndex].size < 1024 * 1024
                         ? 'text-green-500'
                         : medias[currentMediaIndex].size < 10 * 1024 * 1024
-                          ? 'text-yellow-500'
-                          : 'text-red-500'
+                        ? 'text-yellow-500'
+                        : 'text-red-500'
                     )}
                   >
                     {humanFileSize(medias[currentMediaIndex].size)}
@@ -535,8 +580,10 @@ function App() {
               buttonText="Tag"
               onMediaLoaded={handleMediaLoaded}
               onButtonClick={async (mediaPath) => {
-                if (mediaTags.length > 0 || selectedTags.length > 0)
-                  await putTagsToFile(mediaPath, selectedTags.sort(), { tagFileExt: 'txt' })
+                const lockedTagNames = tags.filter((t) => t.locked).map((t) => t.name)
+                const tagsToSave = [...new Set([...selectedTags, ...lockedTagNames])]
+                if (mediaTags.length > 0 || tagsToSave.length > 0)
+                  await putTagsToFile(mediaPath, tagsToSave.sort(), { tagFileExt: 'txt' })
 
                 if (moveLocation) {
                   const originalPath = mediaPath
@@ -550,7 +597,6 @@ function App() {
                     prev.map((m) => (m.path === originalPath ? { ...m, path: newMediaPath } : m))
                   )
 
-
                   // ✅ Preserve decoded blob cache when moving the same file
                   // IMPORTANT: silent rename avoids cache "emit" re-render BEFORE medias/current path update
                   if (imageCache.hasDecoded(originalPath)) {
@@ -562,9 +608,13 @@ function App() {
               }}
               undoButtonText="Undo"
               onUndoClick={() => undoMove(mediaPath)}
-              canUndo={inLocation(mediaPath, moveLocation, { level: 0 }) && !!movedHistory[mediaPath]}
+              canUndo={
+                inLocation(mediaPath, moveLocation, { level: 0 }) && !!movedHistory[mediaPath]
+              }
               statusHtml={
-                inLocation(mediaPath, moveLocation, { level: 0 }) ? <IconCheck color="green" /> : null
+                inLocation(mediaPath, moveLocation, { level: 0 }) ? (
+                  <IconCheck color="green" />
+                ) : null
               }
             />
 
@@ -597,10 +647,10 @@ function App() {
                         moveLocation
                           ? 'text-slate-900 dark:text-slate-100 opacity-100 hover:opacity-90'
                           : [
-                            'text-slate-500 dark:text-slate-500 opacity-50 hover:opacity-70',
-                            'after:content-[""] after:absolute after:left-0.5 after:right-0.5 after:top-1/2',
-                            'after:h-px after:bg-current after:-rotate-45 after:pointer-events-none'
-                          ].join(' ')
+                              'text-slate-500 dark:text-slate-500 opacity-50 hover:opacity-70',
+                              'after:content-[""] after:absolute after:left-0.5 after:right-0.5 after:top-1/2',
+                              'after:h-px after:bg-current after:-rotate-45 after:pointer-events-none'
+                            ].join(' ')
                       )}
                     >
                       <IconFolderShare size={16} />
@@ -635,7 +685,10 @@ function App() {
                     className="flex-1"
                   />
                   <button
-                    onClick={() => setSelectedTags([...new Set(mediaTags)])}
+                    onClick={() => {
+                      const lockedTagNames = tags.filter((t) => t.locked).map((t) => t.name)
+                      setSelectedTags([...new Set([...mediaTags, ...lockedTagNames])])
+                    }}
                     title="Reset Selected Tags"
                     className="p-1.5 rounded-md hover:bg-slate-200/30 dark:hover:bg-slate-700/40 text-slate-900 dark:text-slate-200"
                   >
@@ -648,16 +701,28 @@ function App() {
                 tags={tags}
                 groups={groups}
                 mediaTags={mediaTags}
-                selectedItems={selectedTags}
-                onSelect={(tag, { checked, ctrlKey }) =>
-                  setSelectedTags((tags) => {
-                    let oldSelectedTags = tags
-                    if (!ctrlKey) oldSelectedTags = []
-                    if (checked) return [...oldSelectedTags, tag]
-                    else return [...oldSelectedTags.filter((oldTag) => oldTag !== tag)]
+                selectedItems={[
+                  ...selectedTags,
+                  ...tags.filter((t) => t.locked).map((t) => t.name)
+                ]}
+                onSelect={(tag, { checked, ctrlKey }) => {
+                  const tagObj = tags.find((t) => t.name === tag)
+                  if (!checked && tagObj?.locked) {
+                    const newTags = tags.map((t) => (t.name === tag ? { ...t, locked: false } : t))
+                    setTags(newTags)
+                    putTagsToFile(currentProfile, newTags, { groups }).catch(console.error)
+                  }
+
+                  setSelectedTags((prev) => {
+                    const baseTags = ctrlKey ? prev : []
+                    if (checked) {
+                      return [...baseTags, tag]
+                    }
+                    return baseTags.filter((t) => t !== tag)
                   })
-                }
+                }}
                 onReorder={handleReorder}
+                onLockToggle={handleLockToggle}
                 className="flex-1 p-1"
               />
 
@@ -686,7 +751,9 @@ function App() {
                     if (newGroup && !groups.find((g) => g.name === newGroup)) {
                       const newGroups = [...groups, { id: Date.now().toString(), name: newGroup }]
                       setGroups(newGroups)
-                      putTagsToFile(currentProfile, tags, { groups: newGroups }).catch(console.error)
+                      putTagsToFile(currentProfile, tags, { groups: newGroups }).catch(
+                        console.error
+                      )
                       e.target.value = ''
                     }
                   }}

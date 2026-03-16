@@ -36,7 +36,7 @@ export default function Toggle({
         }}
         className={[
           'relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none',
-          enabled ? 'bg-indigo-600 shadow-[0_2px_6px_rgba(79,70,229,0.16)]' : 'bg-slate-700/60',
+          enabled ? 'bg-indigo-600 shadow-[0_2px_6px_rgba(79,70,229,0.16)]' : 'bg-slate-700/60'
         ].join(' ')}
       >
         <span
@@ -48,7 +48,9 @@ export default function Toggle({
       </button>
 
       <div className="flex flex-col">
-        <span className="text-xs font-medium text-slate-900 dark:text-slate-200 uppercase">{text}</span>
+        <span className="text-xs font-medium text-slate-900 dark:text-slate-200 uppercase">
+          {text}
+        </span>
         {enabled && title ? (
           <span className="mt-0.5 text-[.65rem] text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/40 px-2 py-0.5 rounded-full max-w-[12rem] truncate">
             {title}

@@ -11,12 +11,12 @@ export default function ExternalScriptButton({
   onScriptStart,
   onScriptEnd,
   onScriptResolve,
-  onScriptReject,
+  onScriptReject
 }) {
   return (
     <Button
       className={['p-1.5 uppercase font-bold', className].join(' ')}
-      onClick={async e => {
+      onClick={async (e) => {
         if (!script || e.ctrlKey) {
           const { value: newScript } = await Swal.fire({
             title: 'Type The Command',
@@ -24,7 +24,7 @@ export default function ExternalScriptButton({
             inputAutoTrim: true,
             inputLabel: 'Type the command to run, with space-separated arguments',
             inputValue: script ?? '',
-            showCancelButton: true,
+            showCancelButton: true
           })
           if (newScript == undefined) return
           setScript(newScript)
@@ -33,14 +33,14 @@ export default function ExternalScriptButton({
 
         onScriptStart?.()
         try {
-          const command = String.raw`${[script, ...args].join(' ')}`.replace(/\\/g, '/');
-          const output = await window.api.executeScript(command);
+          const command = String.raw`${[script, ...args].join(' ')}`.replace(/\\/g, '/')
+          const output = await window.api.executeScript(command)
           onScriptResolve?.(output)
-        } catch(e) {
+        } catch (e) {
           await Swal.fire({
             icon: 'error',
             title: 'Oops...',
-            html: `<pre>${e}</pre>`,
+            html: `<pre>${e}</pre>`
           })
           onScriptReject?.(e)
         }

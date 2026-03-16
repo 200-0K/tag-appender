@@ -79,10 +79,12 @@ function getSiblings(filePath) {
   if (!filePath) return null
   const parsedFile = path.parse(filePath)
   const dir = path.resolve(parsedFile.dir)
-  const dirFiles = fs.readdirSync(dir);
-  const siblings = dirFiles.map(file => path.join(dir, file)).filter(filePath => {
-    const tempParsed = path.parse(filePath);
-    return tempParsed.name === parsedFile.name;
-  })  
+  const dirFiles = fs.readdirSync(dir)
+  const siblings = dirFiles
+    .map((file) => path.join(dir, file))
+    .filter((filePath) => {
+      const tempParsed = path.parse(filePath)
+      return tempParsed.name === parsedFile.name
+    })
   return siblings
 }

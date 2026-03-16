@@ -7,9 +7,15 @@ import Button from '../Button'
 import DropdownMenu from '../DropdownMenu'
 import { cn } from '../../pages/App/utils/cn'
 
-export default function ProfileList({ profiles, currentProfile, setProfiles, setCurrentProfile, className }) {
+export default function ProfileList({
+  profiles,
+  currentProfile,
+  setProfiles,
+  setCurrentProfile,
+  className
+}) {
   return (
-    <div className={cn("flex gap-2", className)}>
+    <div className={cn('flex gap-2', className)}>
       <DropdownMenu
         items={profiles.map((profilePath) => ({
           value: profilePath,
@@ -43,7 +49,7 @@ export default function ProfileList({ profiles, currentProfile, setProfiles, set
           setProfiles(profiles)
           setCurrentProfile(
             profiles.find((profile) => getFileWithoutExtension(getFileName(profile)) == filename) ??
-            profiles[0]
+              profiles[0]
           )
         }}
       >
