@@ -4,15 +4,16 @@ import { CSS } from '@dnd-kit/utilities'
 import { SortableItem } from './SortableItem'
 import { cn } from '../../../pages/App/utils/cn'
 
-export function SortableGroup({ id, name, items, selectedItems, onSelect, isDefault }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging
-  } = useSortable({
+export function SortableGroup({
+  id,
+  name,
+  items,
+  selectedItems,
+  onSelect,
+  onLockToggle,
+  isDefault
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: id,
     data: {
       type: 'group',
@@ -35,7 +36,7 @@ export function SortableGroup({ id, name, items, selectedItems, onSelect, isDefa
       >
         <span
           className={cn(
-            "w-full flex items-center text-[0.65rem] tracking-widest font-bold dark:text-slate-300",
+            'w-full flex items-center text-[0.65rem] tracking-widest font-bold dark:text-slate-300',
             "before:content-[''] before:block before:flex-1 before:border-t before:border-slate-600 before:mr-2 before:border-dotted",
             "after:content-['']  after:block  after:flex-1  after:border-t  after:border-slate-600  after:ml-2 after:border-dotted"
           )}
@@ -44,14 +45,19 @@ export function SortableGroup({ id, name, items, selectedItems, onSelect, isDefa
         </span>
       </div>
       <div className="flex flex-col space-y-1 min-h-[20px]">
-        <SortableContext items={items.map((item) => item.value)} strategy={verticalListSortingStrategy}>
+        <SortableContext
+          items={items.map((item) => item.value)}
+          strategy={verticalListSortingStrategy}
+        >
           {items.map((item, idx) => (
             <SortableItem
               key={item.value}
               id={item.value}
               item={item}
               isSelected={selectedItems?.includes(item.value)}
+              isLocked={item.locked}
               onSelect={onSelect}
+              onLockToggle={onLockToggle}
               idx={idx}
             />
           ))}

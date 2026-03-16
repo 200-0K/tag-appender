@@ -18,7 +18,16 @@ import { SortableGroup } from './ui/SortableGroup'
 import { SortableItem } from './ui/SortableItem'
 import { cn } from '../../pages/App/utils/cn'
 
-function SelectableList({ tags, groups, mediaTags, selectedItems, onSelect, onReorder, className }) {
+function SelectableList({
+  tags,
+  groups,
+  mediaTags,
+  selectedItems,
+  onSelect,
+  onReorder,
+  onLockToggle,
+  className
+}) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -34,25 +43,22 @@ function SelectableList({ tags, groups, mediaTags, selectedItems, onSelect, onRe
   const [activeType, setActiveType] = useState(null)
 
   // Custom collision detection strategy
-  const customCollisionDetection = useCallback(
-    (args) => {
-      const { active, droppableContainers } = args
+  const customCollisionDetection = useCallback((args) => {
+    const { active, droppableContainers } = args
 
-      // If dragging a group, only interact with other groups
-      if (active.data.current?.type === 'group') {
-        const groupContainers = droppableContainers.filter(
-          (container) => container.data.current?.type === 'group'
-        )
-        return closestCorners({
-          ...args,
-          droppableContainers: groupContainers
-        })
-      }
+    // If dragging a group, only interact with other groups
+    if (active.data.current?.type === 'group') {
+      const groupContainers = droppableContainers.filter(
+        (container) => container.data.current?.type === 'group'
+      )
+      return closestCorners({
+        ...args,
+        droppableContainers: groupContainers
+      })
+    }
 
-      return closestCorners(args)
-    },
-    []
-  )
+    return closestCorners(args)
+  }, [])
 
   // Prepare groups including the default one
   const allGroups = [...groups, { id: 'default', name: 'Default' }]
@@ -64,7 +70,8 @@ function SelectableList({ tags, groups, mediaTags, selectedItems, onSelect, onRe
       .map((tag) => ({
         value: tag.name,
         color: mediaTags.includes(tag.name) ? 'green' : undefined,
-        groupId: tag.groupId || 'default'
+        groupId: tag.groupId || 'default',
+        locked: tag.locked || false
       }))
 
     if (groupId === 'default') {
@@ -73,7 +80,8 @@ function SelectableList({ tags, groups, mediaTags, selectedItems, onSelect, onRe
         .map((name) => ({
           value: name,
           color: 'yellow',
-          groupId: 'default'
+          groupId: 'default',
+          locked: false
         }))
       return [...profileTags, ...orphanMediaTags]
     }
@@ -125,7 +133,10 @@ function SelectableList({ tags, groups, mediaTags, selectedItems, onSelect, onRe
       if (activeGroupId !== overGroupId) {
         let newTags
         if (isNewTag) {
-          newTags = [...tags, { ...activeTag, groupId: overGroupId === 'default' ? undefined : overGroupId }]
+          newTags = [
+            ...tags,
+            { ...activeTag, groupId: overGroupId === 'default' ? undefined : overGroupId }
+          ]
         } else {
           newTags = tags.map((t) => {
             if (t.name === activeId) {
@@ -155,11 +166,11 @@ function SelectableList({ tags, groups, mediaTags, selectedItems, onSelect, onRe
         const oldIndex = allGroups.findIndex((g) => g.id === active.id)
         const newIndex = allGroups.findIndex((g) => g.id === over.id)
 
-        // Don't reorder if it's the default group being moved? 
+        // Don't reorder if it's the default group being moved?
         // Actually user said "can also reorder group"
         const reorderedGroups = arrayMove(allGroups, oldIndex, newIndex)
         // Filter out 'default' before saving
-        const finalGroups = reorderedGroups.filter(g => g.id !== 'default')
+        const finalGroups = reorderedGroups.filter((g) => g.id !== 'default')
         onReorder(tags, finalGroups)
       } else if (activeType === 'tag') {
         // Reordering tags within or across groups
@@ -170,10 +181,10 @@ function SelectableList({ tags, groups, mediaTags, selectedItems, onSelect, onRe
           // Dropped over a group header
           const overGroupId = over.id
           // Move to the end of that group
-          const groupTags = tags.filter(t => (t.groupId || 'default') === overGroupId)
+          const groupTags = tags.filter((t) => (t.groupId || 'default') === overGroupId)
           if (groupTags.length > 0) {
             const lastTagInGroup = groupTags[groupTags.length - 1]
-            newIndex = tags.findIndex(t => t.name === lastTagInGroup.name)
+            newIndex = tags.findIndex((t) => t.name === lastTagInGroup.name)
           } else {
             newIndex = tags.length // Fallback
           }
@@ -200,10 +211,7 @@ function SelectableList({ tags, groups, mediaTags, selectedItems, onSelect, onRe
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext
-          items={allGroups.map((g) => g.id)}
-          strategy={verticalListSortingStrategy}
-        >
+        <SortableContext items={allGroups.map((g) => g.id)} strategy={verticalListSortingStrategy}>
           {allGroups.map((group) => (
             <SortableGroup
               key={group.id}
@@ -212,6 +220,7 @@ function SelectableList({ tags, groups, mediaTags, selectedItems, onSelect, onRe
               items={getGroupTags(group.id)}
               selectedItems={selectedItems}
               onSelect={onSelect}
+              onLockToggle={onLockToggle}
               isDefault={group.id === 'default'}
             />
           ))}
@@ -221,13 +230,11 @@ function SelectableList({ tags, groups, mediaTags, selectedItems, onSelect, onRe
             activeType === 'group' ? (
               <div className="py-1 px-2 bg-slate-700 rounded-md opacity-80 flex items-center justify-center">
                 <span className="text-[0.65rem] tracking-widest font-bold text-slate-400 before:border-l-2 before:border-slate-600 before:mr-2 after:border-r-2 after:border-slate-600 after:ml-2">
-                  {allGroups.find(g => g.id === activeId)?.name}
+                  {allGroups.find((g) => g.id === activeId)?.name}
                 </span>
               </div>
             ) : (
-              <div className="bg-slate-700 p-2 rounded-md opacity-80 text-white">
-                {activeId}
-              </div>
+              <div className="bg-slate-700 p-2 rounded-md opacity-80 text-white">{activeId}</div>
             )
           ) : null}
         </DragOverlay>

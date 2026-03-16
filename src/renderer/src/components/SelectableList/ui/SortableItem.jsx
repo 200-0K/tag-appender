@@ -2,9 +2,9 @@ import React from 'react'
 import { cn } from '../../../pages/App/utils/cn'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { IconGripVertical } from '@tabler/icons-react'
+import { IconGripVertical, IconLock, IconLockOpen } from '@tabler/icons-react'
 
-export function SortableItem({ id, item, isSelected, onSelect, idx }) {
+export function SortableItem({ id, item, isSelected, isLocked, onSelect, onLockToggle, idx }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: id,
     data: {
@@ -32,7 +32,8 @@ export function SortableItem({ id, item, isSelected, onSelect, idx }) {
         {
           'bg-emerald-500 text-white shadow-md': isSelected && item.color === 'green',
           'bg-amber-500 text-slate-900 shadow-md': isSelected && item.color === 'yellow',
-          'bg-indigo-500 dark:bg-indigo-600 text-white shadow-md': isSelected && item.color !== 'green' && item.color !== 'yellow'
+          'bg-indigo-500 dark:bg-indigo-600 text-white shadow-md':
+            isSelected && item.color !== 'green' && item.color !== 'yellow'
         }
       )}
     >
@@ -40,7 +41,8 @@ export function SortableItem({ id, item, isSelected, onSelect, idx }) {
         {...attributes}
         {...listeners}
         className={cn('p-1 cursor-grab active:cursor-grabbing', {
-          'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200': !isSelected,
+          'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200':
+            !isSelected,
           'text-white': isSelected
         })}
       >
@@ -63,7 +65,6 @@ export function SortableItem({ id, item, isSelected, onSelect, idx }) {
         />
         <label
           className={cn('cursor-pointer block py-2 px-3 break-words truncate', {
-            // label text color: dark in light-mode, light in dark-mode when not selected
             'text-slate-900 dark:text-slate-200': !isSelected,
             'text-white': isSelected
           })}
@@ -72,6 +73,20 @@ export function SortableItem({ id, item, isSelected, onSelect, idx }) {
           {item.value ?? item}
         </label>
       </div>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          onLockToggle?.(item.value ?? item)
+        }}
+        className={cn('p-2 hover:bg-slate-600/50 rounded-r-md transition-colors', {
+          'text-amber-400': isLocked,
+          'text-slate-500 opacity-40': !isLocked
+        })}
+        title={isLocked ? 'Unlock tag' : 'Lock tag'}
+      >
+        {isLocked ? <IconLock size={14} /> : <IconLockOpen size={14} />}
+      </button>
     </div>
   )
 }
