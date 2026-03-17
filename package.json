@@ -1,6 +1,6 @@
 {
   "name": "tag-appender",
-  "version": "2.2.14",
+  "version": "2.2.15",
   "description": "Easily append tags to images name",
   "main": "./out/main/index.js",
   "author": {
