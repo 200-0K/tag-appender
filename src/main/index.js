@@ -68,7 +68,6 @@ function createWindow() {
       Pragma: 'no-cache'
     }
   }
-  autoUpdater.httpExecutor = null
 
   ipcMain.removeHandler('check-for-updates')
   ipcMain.handle('check-for-updates', () => {
