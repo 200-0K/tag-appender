@@ -62,6 +62,13 @@ function createWindow() {
 
   // Auto-updater logic
   autoUpdater.autoDownload = true
+  autoUpdater.requestOptions = {
+    headers: {
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache'
+    }
+  }
+  autoUpdater.httpExecutor = null
 
   ipcMain.removeHandler('check-for-updates')
   ipcMain.handle('check-for-updates', () => {
