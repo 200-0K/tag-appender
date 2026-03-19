@@ -1,5 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { IconArrowLeft, IconCornerUpLeft, IconCheck, IconMapPin, IconClock, IconBookmark, IconBookmarkFilled } from '@tabler/icons-react'
+import {
+  IconArrowLeft,
+  IconCornerUpLeft,
+  IconCheck,
+  IconMapPin,
+  IconClock,
+  IconBookmark,
+  IconBookmarkFilled,
+  IconChevronUp,
+  IconChevronDown
+} from '@tabler/icons-react'
 import Button from '../Button'
 import { cn } from '../../pages/App/utils/cn'
 import { getCachedThumbnail, requestThumbnail } from '../../media/thumbnailCache'
@@ -7,6 +17,19 @@ import { getFileName, inLocation } from '../../../../../utils/path-format'
 
 const ROW_HEIGHT = 118
 const OVERSCAN = 2
+
+function getBookmarkedTargetIndex(bookmarkedIndices, currentMediaIndex, direction) {
+  if (bookmarkedIndices.length === 0) return null
+  if (currentMediaIndex == null) return bookmarkedIndices[0]
+
+  if (direction < 0) {
+    const previous = [...bookmarkedIndices].reverse().find((index) => index < currentMediaIndex)
+    return previous ?? bookmarkedIndices[bookmarkedIndices.length - 1]
+  }
+
+  const next = bookmarkedIndices.find((index) => index > currentMediaIndex)
+  return next ?? bookmarkedIndices[0]
+}
 
 function isImageType(mediaType) {
   return (mediaType || '').toLowerCase().startsWith('image')
@@ -37,7 +60,13 @@ function Thumbnail({ media }) {
   return (
     <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-300/70 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
       {thumbSrc ? (
-        <img alt="" src={thumbSrc} className="h-full w-full object-cover" loading="lazy" draggable={false} />
+        <img
+          alt=""
+          src={thumbSrc}
+          className="h-full w-full object-cover"
+          loading="lazy"
+          draggable={false}
+        />
       ) : (
         <span className="text-[10px] font-bold tracking-[0.18em] text-slate-500">
           {isImageType(media?.type) ? 'IMG' : label}
@@ -105,7 +134,12 @@ function MediaListRow({
       icon: <IconBookmarkFilled size={11} />
     },
     isVisited && { key: 'visited', title: 'Visited', tone: 'blue', icon: <IconClock size={11} /> },
-    isTagged === true && { key: 'tagged', title: 'Tagged', tone: 'green', icon: <IconCheck size={11} /> },
+    isTagged === true && {
+      key: 'tagged',
+      title: 'Tagged',
+      tone: 'green',
+      icon: <IconCheck size={11} />
+    },
     isMoved && { key: 'moved', title: 'Moved', tone: 'amber', icon: <IconMapPin size={11} /> }
   ].filter(Boolean)
 
@@ -131,7 +165,10 @@ function MediaListRow({
                 <p className="truncate font-medium text-slate-900 dark:text-slate-100">
                   {getFileName(media.path)}
                 </p>
-                <p className="truncate text-[11px] text-slate-500 dark:text-slate-400" title={media.path}>
+                <p
+                  className="truncate text-[11px] text-slate-500 dark:text-slate-400"
+                  title={media.path}
+                >
                   {media.path}
                 </p>
               </div>
@@ -197,6 +234,15 @@ function MediaListPanel({
     () => medias.filter((media) => visitedMediaPaths[media.path]).length,
     [medias, visitedMediaPaths]
   )
+  const bookmarkedIndices = useMemo(
+    () =>
+      medias.reduce((indices, media, index) => {
+        if (bookmarkedMediaPaths[media.path]) indices.push(index)
+        return indices
+      }, []),
+    [medias, bookmarkedMediaPaths]
+  )
+  const hasBookmarks = bookmarkedIndices.length > 0
 
   useEffect(() => {
     const node = scrollRef.current
@@ -226,7 +272,8 @@ function MediaListPanel({
     const viewBottom = viewTop + scrollRef.current.clientHeight
 
     if (top < viewTop) scrollRef.current.scrollTop = top
-    else if (bottom > viewBottom) scrollRef.current.scrollTop = bottom - scrollRef.current.clientHeight
+    else if (bottom > viewBottom)
+      scrollRef.current.scrollTop = bottom - scrollRef.current.clientHeight
   }, [currentMediaIndex])
 
   const { startIndex, visibleMedias } = useMemo(() => {
@@ -238,6 +285,11 @@ function MediaListPanel({
       visibleMedias: medias.slice(start, end)
     }
   }, [medias, scrollTop, viewportHeight])
+
+  const handleBookmarkJump = (direction) => {
+    const targetIndex = getBookmarkedTargetIndex(bookmarkedIndices, currentMediaIndex, direction)
+    if (targetIndex != null) onSelectMedia(targetIndex)
+  }
 
   return (
     <aside className="w-[24rem] shrink-0 overflow-hidden rounded-lg border border-slate-300/70 bg-white/70 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/60">
@@ -258,6 +310,22 @@ function MediaListPanel({
             <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
               {visitedCount}/{medias.length} visited this session
             </p>
+          </div>
+          <div className="flex items-center gap-1">
+            <ActionIconButton
+              title={hasBookmarks ? 'Previous bookmark' : 'No bookmarks'}
+              onClick={() => handleBookmarkJump(-1)}
+              disabled={!hasBookmarks}
+            >
+              <IconChevronUp size={14} />
+            </ActionIconButton>
+            <ActionIconButton
+              title={hasBookmarks ? 'Next bookmark' : 'No bookmarks'}
+              onClick={() => handleBookmarkJump(1)}
+              disabled={!hasBookmarks}
+            >
+              <IconChevronDown size={14} />
+            </ActionIconButton>
           </div>
           <span className="rounded-full bg-slate-200 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-700 dark:bg-slate-800 dark:text-slate-200">
             {medias.length}
