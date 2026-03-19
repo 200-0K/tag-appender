@@ -24,7 +24,6 @@ export default class PreferenceStore extends Store {
         moveLocation: oldPrefs.moveLocation || null,
         autotagScript: oldPrefs.autotagScript || null,
         currentMediaPath: oldPrefs.currentMediaPath || null,
-        mediaListCollapsed: oldPrefs.mediaListCollapsed ?? true
       }
       this.set('workspaces', [defaultWorkspace])
       this.set('activeWorkspaceId', 'default')
@@ -42,7 +41,6 @@ export default class PreferenceStore extends Store {
         moveLocation: defaults.moveLocation || null,
         autotagScript: defaults.autotagScript || null,
         currentMediaPath: defaults.currentMediaPath || null,
-        mediaListCollapsed: defaults.mediaListCollapsed ?? true
       }
       this.set('workspaces', [defaultWorkspace])
       this.set('activeWorkspaceId', 'default')
@@ -70,7 +68,6 @@ export default class PreferenceStore extends Store {
       moveLocation: active.moveLocation,
       autotagScript: active.autotagScript,
       currentMediaPath: active.currentMediaPath,
-      mediaListCollapsed: active.mediaListCollapsed ?? true
     }
   }
 
@@ -101,7 +98,6 @@ export default class PreferenceStore extends Store {
       moveLocation: null,
       autotagScript: null,
       currentMediaPath: null,
-      mediaListCollapsed: true
     }
     this.workspaces.push(newWorkspace)
     this.activeWorkspaceId = newWorkspace.id

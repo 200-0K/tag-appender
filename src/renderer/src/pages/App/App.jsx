@@ -131,7 +131,7 @@ function App() {
         })
       }
 
-      let { dir, currentMediaPath, currentProfile, moveLocation, autotagScript, mediaListCollapsed } =
+      let { dir, currentMediaPath, currentProfile, moveLocation, autotagScript } =
         await window.api.getPreference()
 
       const taProfiles = (await window.api.profileScanner()) ?? []
@@ -157,7 +157,7 @@ function App() {
       setCurrentMediaPath(currentMediaPath)
       setMoveLocation(moveLocation)
       setAutotagScript(autotagScript)
-      setMediaListCollapsed(mediaListCollapsed ?? true)
+      setMediaListCollapsed(true)
       setProfiles(profiles)
       setCurrentProfile(profiles.find((profile) => profile === currentProfile) ?? profiles[0])
       setLoadingPrefs(false)
@@ -265,7 +265,6 @@ function App() {
       setCurrentMediaPath(workspace.currentMediaPath)
       setMoveLocation(workspace.moveLocation)
       setAutotagScript(workspace.autotagScript)
-      setMediaListCollapsed(workspace.mediaListCollapsed ?? true)
 
       const profiles = (await getProfiles()) ?? []
       setProfiles(profiles)
@@ -325,8 +324,7 @@ function App() {
         currentMediaPath,
         currentProfile,
         moveLocation,
-        autotagScript,
-        mediaListCollapsed
+        autotagScript
       })
       .catch(console.error)
   }, [
@@ -335,7 +333,6 @@ function App() {
     currentProfile,
     moveLocation,
     autotagScript,
-    mediaListCollapsed,
     loadingPrefs,
     switchingWorkspace
   ])
