@@ -7,7 +7,7 @@ import React, {
   useSyncExternalStore
 } from 'react'
 import { getFileName } from '../../../../../utils/path-format'
-import { IconEye } from '@tabler/icons-react'
+import { IconEye, IconBookmark, IconBookmarkFilled } from '@tabler/icons-react'
 import Button from '../Button'
 import InputText from '../InputText'
 import VideoJS, { getPlayer } from '../Videojs'
@@ -68,6 +68,8 @@ function MediaViewer({
   undoButtonText,
   onUndoClick,
   canUndo = false,
+  isBookmarked = false,
+  onBookmarkToggle,
   statusHtml = null,
   onMediaLoaded
 }) {
@@ -194,6 +196,16 @@ function MediaViewer({
             title={mediaPath}
             readOnly
           />
+
+          <Button
+            title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+            disabled={!isThereMedia}
+            onClick={() => onBookmarkToggle?.(mediaPath)}
+            className="px-2"
+            variant={isBookmarked ? 'secondary' : 'outline'}
+          >
+            {isBookmarked ? <IconBookmarkFilled size={18} /> : <IconBookmark size={18} />}
+          </Button>
 
           <Button
             title="Open externally"

@@ -6,6 +6,7 @@ import { cn } from './utils/cn'
 import InputText from '../../components/InputText'
 import SelectableList from '../../components/SelectableList'
 import MediaViewer from '../../components/mediaViewer'
+import MediaListPanel from '../../components/MediaListPanel'
 import Toggle from '../../components/Toggle'
 import ProfileList from '../../components/ProfileList/ProfileList'
 import WorkspaceSelector from '../../components/WorkspaceSelector'
@@ -26,7 +27,6 @@ import {
   IconFolder,
   IconFolderSymlink,
   IconArrowRight,
-  IconArrowLeft,
   IconFolderBolt,
   IconFolderShare,
   IconCloudDownload,
@@ -58,10 +58,26 @@ function App() {
   const [mediaTags, setMediaTags] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [movedHistory, setMovedHistory] = useState({}) // { newPath: originalPath }
+  const [visitedMediaPaths, setVisitedMediaPaths] = useState({})
+  const [taggedMediaPaths, setTaggedMediaPaths] = useState({})
+  const [bookmarkedMediaPaths, setBookmarkedMediaPaths] = useState({})
+  const [mediaListCollapsed, setMediaListCollapsed] = useState(true)
   const [navDir, setNavDir] = useState(1)
   const [checkingUpdate, setCheckingUpdate] = useState(false)
   const [appVersion, setAppVersion] = useState('')
   const [downloadProgress, setDownloadProgress] = useState(null)
+  const remapPathState = (state, oldPath, newPath, fallbackValue) => {
+    if (!oldPath || !newPath || oldPath === newPath) return state
+
+    const nextState = { ...state }
+    const value = Object.prototype.hasOwnProperty.call(nextState, oldPath)
+      ? nextState[oldPath]
+      : fallbackValue
+
+    delete nextState[oldPath]
+    if (value !== undefined) nextState[newPath] = value
+    return nextState
+  }
 
   const clampIndex = (i) => {
     if (!medias || medias.length === 0) return null
@@ -115,7 +131,7 @@ function App() {
         })
       }
 
-      let { dir, currentMediaPath, currentProfile, moveLocation, autotagScript } =
+      let { dir, currentMediaPath, currentProfile, moveLocation, autotagScript, mediaListCollapsed } =
         await window.api.getPreference()
 
       const taProfiles = (await window.api.profileScanner()) ?? []
@@ -141,6 +157,7 @@ function App() {
       setCurrentMediaPath(currentMediaPath)
       setMoveLocation(moveLocation)
       setAutotagScript(autotagScript)
+      setMediaListCollapsed(mediaListCollapsed ?? true)
       setProfiles(profiles)
       setCurrentProfile(profiles.find((profile) => profile === currentProfile) ?? profiles[0])
       setLoadingPrefs(false)
@@ -237,6 +254,9 @@ function App() {
     setMediaTags([])
     setSelectedTags([])
     setMovedHistory({})
+    setVisitedMediaPaths({})
+    setTaggedMediaPaths({})
+    setBookmarkedMediaPaths({})
 
     const workspace = await window.api.switchWorkspace(id)
     if (workspace) {
@@ -245,6 +265,7 @@ function App() {
       setCurrentMediaPath(workspace.currentMediaPath)
       setMoveLocation(workspace.moveLocation)
       setAutotagScript(workspace.autotagScript)
+      setMediaListCollapsed(workspace.mediaListCollapsed ?? true)
 
       const profiles = (await getProfiles()) ?? []
       setProfiles(profiles)
@@ -299,7 +320,14 @@ function App() {
   useEffect(() => {
     if (loadingPrefs || switchingWorkspace) return
     window.api
-      .updatePreference({ dir, currentMediaPath, currentProfile, moveLocation, autotagScript })
+      .updatePreference({
+        dir,
+        currentMediaPath,
+        currentProfile,
+        moveLocation,
+        autotagScript,
+        mediaListCollapsed
+      })
       .catch(console.error)
   }, [
     dir,
@@ -307,6 +335,7 @@ function App() {
     currentProfile,
     moveLocation,
     autotagScript,
+    mediaListCollapsed,
     loadingPrefs,
     switchingWorkspace
   ])
@@ -331,6 +360,9 @@ function App() {
     // ✅ PREFETCH: clear cache + abort when directory changes
     imagePrefetcher.clear()
     imageCache.clear()
+    setVisitedMediaPaths({})
+    setTaggedMediaPaths({})
+    setBookmarkedMediaPaths({})
     loadDir(dir)
   }, [dir])
 
@@ -358,6 +390,7 @@ function App() {
     getTagsFromFile(medias[currentMediaIndex].path, { tagFileExt: 'txt' }).then((mediaTags) => {
       mediaTags = mediaTags ?? []
       setMediaTags(mediaTags)
+      setTaggedMediaPaths((prev) => ({ ...prev, [medias[currentMediaIndex].path]: mediaTags.length > 0 }))
       const newSelectedTags = [
         ...new Set([
           ...selectedTags.filter((tag) => tags.some((t) => t.name === tag)),
@@ -374,6 +407,11 @@ function App() {
     if (!medias[currentMediaIndex]) return
     loadMediaTags()
   }, [currentMediaIndex, medias])
+
+  useEffect(() => {
+    if (!currentMediaPath) return
+    setVisitedMediaPaths((prev) => (prev[currentMediaPath] ? prev : { ...prev, [currentMediaPath]: true }))
+  }, [currentMediaPath])
 
   // ✅ PREFETCH: preload neighbors whenever index changes
   useEffect(() => {
@@ -392,7 +430,14 @@ function App() {
     const extra = []
     for (let i = 1; i <= 12; i++) {
       const m = medias[currentMediaIndex + navDir * i]
-      if (m?.path && (m.type || '').toLowerCase().startsWith('image')) extra.push(m.path)
+      const type = (m?.type || '').toLowerCase()
+      const isEligibleImage =
+        !!m?.path &&
+        type.startsWith('image') &&
+        type !== 'image/gif' &&
+        !m.path.toLowerCase().endsWith('.gif') &&
+        !(typeof m.size === 'number' && m.size > 250 * 1024 * 1024)
+      if (isEligibleImage) extra.push(m.path)
     }
     imagePrefetcher.prefetchPaths(extra)
   }, [currentMediaIndex, medias])
@@ -412,6 +457,9 @@ function App() {
       delete newHistory[currentPath]
       return newHistory
     })
+    setVisitedMediaPaths((prev) => remapPathState(prev, currentPath, movedBackPath, true))
+    setTaggedMediaPaths((prev) => remapPathState(prev, currentPath, movedBackPath, prev[currentPath]))
+    setBookmarkedMediaPaths((prev) => remapPathState(prev, currentPath, movedBackPath, prev[currentPath]))
 
     // ✅ Keep blob valid through undo (and avoid emit-race)
     if (imageCache.hasDecoded(currentPath)) {
@@ -467,6 +515,22 @@ function App() {
   )
 
   const mediaPath = currentMediaPath
+
+  const toggleBookmark = (path) => {
+    if (!path) return
+    setBookmarkedMediaPaths((prev) => {
+      const next = { ...prev }
+      if (next[path]) delete next[path]
+      else next[path] = true
+      return next
+    })
+  }
+
+  const handleSelectMedia = (index) => {
+    if (index == null || index < 0 || index >= medias.length) return
+    setCurrentMediaIndex(index)
+  }
+
   return (
     <div
       className={cn(
@@ -535,9 +599,39 @@ function App() {
             </button>
           </header>
 
-          <main className={'flex-1 flex overflow-hidden px-4 py-1'}>
-            <MediaViewer
-              className={'flex-1'}
+          <main className={'flex-1 flex gap-2 overflow-hidden px-4 py-1'}>
+            {!mediaListCollapsed && (
+              <MediaListPanel
+                medias={medias}
+                currentMediaIndex={currentMediaIndex}
+                visitedMediaPaths={visitedMediaPaths}
+                taggedMediaPaths={taggedMediaPaths}
+                moveLocation={moveLocation}
+                movedHistory={movedHistory}
+                bookmarkedMediaPaths={bookmarkedMediaPaths}
+                onToggleCollapsed={() => setMediaListCollapsed(true)}
+                onSelectMedia={handleSelectMedia}
+                onUndoMedia={undoMove}
+                onBookmarkToggle={toggleBookmark}
+                disabled={loadingMediaTags}
+              />
+            )}
+
+            <div className="relative flex-1 min-w-0">
+              {mediaListCollapsed && (
+                <button
+                  type="button"
+                  title="Open media list"
+                  aria-label="Open media list"
+                  onClick={() => setMediaListCollapsed(false)}
+                  className="absolute left-0 top-1/2 z-10 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-300/70 bg-white/90 px-0 text-slate-700 shadow-sm backdrop-blur-sm transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-200 dark:hover:bg-slate-900"
+                >
+                  <IconArrowRight size={14} />
+                </button>
+              )}
+
+              <MediaViewer
+                className={'h-full'}
               mediaPath={mediaPath}
               mediaType={medias[currentMediaIndex]?.type}
               mediaMeta={
@@ -585,6 +679,11 @@ function App() {
                 if (mediaTags.length > 0 || tagsToSave.length > 0)
                   await putTagsToFile(mediaPath, tagsToSave.sort(), { tagFileExt: 'txt' })
 
+                setTaggedMediaPaths((prev) => ({
+                  ...prev,
+                  [mediaPath]: mediaTags.length > 0 || tagsToSave.length > 0
+                }))
+
                 if (moveLocation) {
                   const originalPath = mediaPath
                   const newMediaPath = await moveMedia(mediaPath, moveLocation)
@@ -592,6 +691,15 @@ function App() {
 
                   if (newMediaPath !== originalPath) {
                     setMovedHistory((prev) => ({ ...prev, [newMediaPath]: originalPath }))
+                    setVisitedMediaPaths((prev) => remapPathState(prev, originalPath, newMediaPath, true))
+                    setTaggedMediaPaths((prev) =>
+                      remapPathState(
+                        prev,
+                        originalPath,
+                        newMediaPath,
+                        prev[originalPath] ?? (mediaTags.length > 0 || tagsToSave.length > 0)
+                      )
+                    )
                   }
                   setMedias((prev) =>
                     prev.map((m) => (m.path === originalPath ? { ...m, path: newMediaPath } : m))
@@ -611,15 +719,18 @@ function App() {
               canUndo={
                 inLocation(mediaPath, moveLocation, { level: 0 }) && !!movedHistory[mediaPath]
               }
+              isBookmarked={!!bookmarkedMediaPaths[mediaPath]}
+              onBookmarkToggle={toggleBookmark}
               statusHtml={
                 inLocation(mediaPath, moveLocation, { level: 0 }) ? (
                   <IconCheck color="green" />
                 ) : null
               }
-            />
+              />
+            </div>
 
             {/* Right Section */}
-            <div className="flex flex-col gap-2 w-56 select-none">
+            <div className="flex w-56 shrink-0 flex-col gap-2 select-none">
               <div className="flex p-1 gap-2 justify-between">
                 <div></div>
 
